@@ -16,6 +16,7 @@ final class AppEnvironment: ObservableObject {
     @Published private(set) var store: Store!
     @Published private(set) var settings: SettingsStore!
     @Published private(set) var statisticsViewModel: StatisticsViewModel!
+    @Published private(set) var isPaused = false
     let permissions = PermissionsMonitor()
 
     private var engine: TrackingEngine!
@@ -47,7 +48,9 @@ final class AppEnvironment: ObservableObject {
     }
 
     func togglePaused() async -> Bool {
-        await engine.togglePaused()
+        let newValue = await engine.togglePaused()
+        isPaused = newValue
+        return newValue
     }
 
     private static func databaseURL() throws -> URL {

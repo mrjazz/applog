@@ -9,18 +9,23 @@ import Combine
 final class PermissionsMonitor: ObservableObject {
     @Published private(set) var isAccessibilityGranted: Bool
 
-    private var pollTimer: Timer?
+    private var pollTask: Task<Void, Never>?
 
     init() {
         isAccessibilityGranted = AXIsProcessTrusted()
         // Accessibility grants take effect immediately but this process only
         // learns about them by re-checking; poll at a low frequency rather
         // than requiring the user to relaunch the app.
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
-            Task { @MainActor in
+        pollTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
                 self?.refresh()
             }
         }
+    }
+
+    deinit {
+        pollTask?.cancel()
     }
 
     func refresh() {

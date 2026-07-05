@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import Combine
 
 /// Owns the `NSStatusItem` directly (rather than `MenuBarExtra`) because we
 /// need to distinguish left-click from right-click: a plain click always
@@ -11,6 +12,7 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var isPaused = false
+    private var isPausedSubscription: AnyCancellable?
 
     /// Registered by `WindowOpenerBridge` once the Statistics window scene
     /// exists, so this AppKit-side delegate can drive SwiftUI's `openWindow`.
@@ -26,6 +28,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
 
+        isPausedSubscription = AppEnvironment.shared.$isPaused.sink { [weak self] paused in
+            self?.updatePauseState(paused)
+        }
+
         Task { await AppEnvironment.shared.bootstrap() }
     }
 
@@ -34,8 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if event.type == .rightMouseUp {
             showQuickActionMenu()
         } else {
-            NSApp.activate(ignoringOtherApps: true)
-            openStatisticsAction?()
+            openStatistics()
         }
     }
 
@@ -48,6 +53,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         pauseItem.target = self
         menu.addItem(pauseItem)
+
+        let statisticsItem = NSMenuItem(title: "Statistics…", action: #selector(openStatistics), keyEquivalent: "")
+        statisticsItem.target = self
+        menu.addItem(statisticsItem)
 
         let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
@@ -66,17 +75,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func togglePauseTracking() {
-        Task {
-            isPaused = await AppEnvironment.shared.togglePaused()
-            statusItem.button?.image = NSImage(
-                systemSymbolName: isPaused ? "pause.circle" : "circle.fill",
-                accessibilityDescription: "AppTracker"
-            )
-        }
+        Task { await AppEnvironment.shared.togglePaused() }
+    }
+
+    private func updatePauseState(_ paused: Bool) {
+        isPaused = paused
+        statusItem.button?.image = NSImage(
+            systemSymbolName: paused ? "pause.circle" : "circle.fill",
+            accessibilityDescription: "AppTracker"
+        )
+    }
+
+    @objc private func openStatistics() {
+        bringToFront(windowTitle: "Statistics", action: openStatisticsAction)
     }
 
     @objc private func openSettings() {
+        bringToFront(windowTitle: "Settings", action: openSettingsAction)
+    }
+
+    /// `openWindow(id:)` is responsible for creating the scene the first
+    /// time, but SwiftUI doesn't reliably raise an already-open window above
+    /// other apps, so we always follow up by ordering the matching NSWindow
+    /// to the front ourselves.
+    private func bringToFront(windowTitle: String, action: (() -> Void)?) {
         NSApp.activate(ignoringOtherApps: true)
-        openSettingsAction?()
+        action?()
+        DispatchQueue.main.async {
+            NSApp.windows.first(where: { $0.title == windowTitle })?.makeKeyAndOrderFront(nil)
+        }
     }
 }

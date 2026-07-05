@@ -32,6 +32,11 @@ struct FilterSidebar: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 sectionLabel("Date Range")
+                HStack(spacing: 6) {
+                    Text(dateRangeFrom).font(.system(size: 11.5)).foregroundStyle(.secondary)
+                    Text("–").foregroundStyle(.tertiary)
+                    Text(dateRangeTo).font(.system(size: 11.5)).foregroundStyle(.secondary)
+                }
                 Picker("", selection: $viewModel.quickSet) {
                     ForEach(DateQuickSet.allCases) { Text($0.rawValue).tag($0) }
                 }
@@ -105,6 +110,20 @@ struct FilterSidebar: View {
         .padding(14)
         .frame(width: 232)
         .background(Color(nsColor: .underPageBackgroundColor))
+    }
+
+    private static let dateRangeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, yyyy"
+        return formatter
+    }()
+
+    private var dateRangeFrom: String {
+        Self.dateRangeFormatter.string(from: viewModel.quickSet.range.from)
+    }
+
+    private var dateRangeTo: String {
+        Self.dateRangeFormatter.string(from: viewModel.quickSet.range.to)
     }
 
     private func sectionLabel(_ text: String) -> some View {

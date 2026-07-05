@@ -1,7 +1,7 @@
 import Foundation
 import SQLite3
 
-private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+private nonisolated let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 /// Owns the single SQLite connection. All reads/writes go through this actor,
 /// so `TrackingEngine` (writing every sample) and the UI (reading for display)

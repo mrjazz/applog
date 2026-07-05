@@ -102,6 +102,7 @@ final class StatisticsViewModel: ObservableObject {
             guard let day = calendar.date(byAdding: .day, value: -offset, to: Date()) else { continue }
             let dayStart = calendar.startOfDay(for: day)
             let sessions = (try? await store.sessions(onDay: dayStart)) ?? []
+            guard !sessions.isEmpty else { continue }
             let blocks = sessions.map { session -> TimelineBlock in
                 let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart)!
                 let clampedStart = max(session.startedAt, dayStart)

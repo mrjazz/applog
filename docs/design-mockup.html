@@ -242,6 +242,24 @@
     font-variant-numeric: tabular-nums;
   }
   .stats-toolbar .totals b { color: var(--text-primary); font-weight: 600; }
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 4px 9px 4px 7px;
+    border-radius: 6px;
+    cursor: default;
+  }
+  .status-pill:hover { background: var(--row-hover); }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-dot.recording { background: #28c840; box-shadow: 0 0 0 3px rgba(40, 200, 64, 0.18); }
+  .status-dot.paused { background: var(--text-tertiary); }
   .spacer { flex: 1; }
   .search-field {
     display: flex;
@@ -908,6 +926,10 @@
         <div class="title">Statistics</div>
       </div>
       <div class="stats-toolbar">
+        <div class="status-pill" title="Click to pause tracking">
+          <span class="status-dot recording"></span>
+          Recording
+        </div>
         <span class="totals">Today · <b>8h 27m</b> tracked</span>
         <div class="spacer"></div>
         <div class="search-field">
@@ -1354,9 +1376,9 @@
             <div class="settings-row">
               <div>
                 <div class="row-label">Show in Dock</div>
-                <div class="row-sub">Off by default — menu bar only</div>
+                <div class="row-sub">Also controls whether AppTracker appears in Cmd-Tab</div>
               </div>
-              <div class="toggle"></div>
+              <div class="toggle on"></div>
             </div>
             <div class="settings-row">
               <div class="row-label">Sample frequency</div>

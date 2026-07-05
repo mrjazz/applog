@@ -11,7 +11,7 @@ struct HierarchyLevel {
 /// (browser → domain → page title); everything else is delimiter-parsed
 /// into arbitrary-depth segments. See design.md §3.1 — this is intentionally
 /// app-agnostic beyond the browser bundle-id list below.
-enum HierarchyBuilder {
+nonisolated enum HierarchyBuilder {
     static let browserBundleIDs: Set<String> = [
         "com.apple.Safari",
         "com.google.Chrome",

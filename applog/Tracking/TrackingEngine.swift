@@ -1,7 +1,7 @@
 import Foundation
 import AppKit
 
-enum IdleState {
+nonisolated enum IdleState: Equatable {
     case active
     case semiIdle
     case fullyIdle

@@ -27,7 +27,7 @@ final class SettingsStore: ObservableObject {
     init(store: Store) async {
         self.store = store
         launchAtLogin = (try? await store.setting("launchAtLogin")) == "true"
-        showInDock = (try? await store.setting("showInDock")) == "true"
+        showInDock = ((try? await store.setting("showInDock")) ?? "true") == "true"
         sampleIntervalSeconds = Int((try? await store.setting("sampleIntervalSeconds")) ?? "") ?? 5
         semiIdleThresholdSeconds = Int((try? await store.setting("semiIdleThresholdSeconds")) ?? "") ?? 10
         fullyIdleThresholdSeconds = Int((try? await store.setting("fullyIdleThresholdSeconds")) ?? "") ?? 180

@@ -15,18 +15,36 @@ struct SettingsView: View {
     @State private var newExcludedDomain = ""
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 26) {
-                generalSection
-                idleAwaySection
-                storageSection
-                privacySection
-                exportSection
+        VStack(spacing: 0) {
+            header
+            Divider()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 26) {
+                    generalSection
+                    idleAwaySection
+                    storageSection
+                    privacySection
+                    exportSection
+                }
+                .padding(28)
             }
-            .padding(28)
         }
         .frame(width: 560, height: 620)
         .task { await loadExclusions() }
+    }
+
+    private var header: some View {
+        HStack(spacing: 10) {
+            RoundedRectangle(cornerRadius: 7)
+                .fill(LinearGradient(colors: [.gray, .gray.opacity(0.7)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .frame(width: 26, height: 26)
+                .overlay(Image(systemName: "gearshape.fill").font(.system(size: 13)).foregroundStyle(.white))
+            Text("Settings").font(.system(size: 15, weight: .semibold))
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     // MARK: General
@@ -40,7 +58,7 @@ struct SettingsView: View {
                         set: { settings.setLaunchAtLogin($0) }
                     )).labelsHidden()
                 }
-                row(title: "Show in Dock", subtitle: "Off by default — menu bar only") {
+                row(title: "Show in Dock", subtitle: "Also controls whether AppTracker appears in Cmd-Tab") {
                     Toggle("", isOn: Binding(
                         get: { settings.showInDock },
                         set: { settings.setShowInDock($0) }

@@ -22,7 +22,12 @@ struct applogApp: App {
         Window("Statistics", id: "statistics") {
             Group {
                 if environment.isReady {
-                    StatisticsView(viewModel: environment.statisticsViewModel, permissions: environment.permissions)
+                    StatisticsView(
+                        viewModel: environment.statisticsViewModel,
+                        permissions: environment.permissions,
+                        isPaused: environment.isPaused,
+                        onTogglePause: { Task { await environment.togglePaused() } }
+                    )
                 } else {
                     ProgressView("Loading…").frame(width: 920, height: 560)
                 }
