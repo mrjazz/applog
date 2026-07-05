@@ -9,6 +9,8 @@ struct FilterSidebar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
+            tagsSection
+
             VStack(alignment: .leading, spacing: 8) {
                 sectionLabel("Minimum Duration")
                 HStack {
@@ -32,23 +34,6 @@ struct FilterSidebar: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 sectionLabel("Date Range")
-                HStack(spacing: 6) {
-                    DatePicker(
-                        "", selection: Binding(get: { viewModel.customFrom }, set: viewModel.setCustomFrom),
-                        in: ...viewModel.customTo, displayedComponents: .date
-                    )
-                    .labelsHidden()
-                    .font(.system(size: 11.5))
-
-                    Text("–").foregroundStyle(.tertiary)
-
-                    DatePicker(
-                        "", selection: Binding(get: { viewModel.customTo }, set: viewModel.setCustomTo),
-                        in: viewModel.customFrom...Date(), displayedComponents: .date
-                    )
-                    .labelsHidden()
-                    .font(.system(size: 11.5))
-                }
                 Picker("", selection: $viewModel.quickSet) {
                     ForEach(DateQuickSet.allCases) { Text($0.rawValue).tag($0) }
                 }
@@ -60,54 +45,56 @@ struct FilterSidebar: View {
                 }
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                sectionLabel("Tags")
-                VStack(spacing: 1) {
-                    ForEach(viewModel.tags) { tag in
-                        tagRow(tag)
-                    }
-                }
-                .background(.background)
-                .clipShape(RoundedRectangle(cornerRadius: 7))
-                .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(.separator))
-
-                if isAddingTag {
-                    HStack {
-                        TextField("Tag name", text: $newTagName)
-                            .textFieldStyle(.roundedBorder)
-                            .onSubmit(addTag)
-                        Button("Add", action: addTag).disabled(newTagName.isEmpty)
-                    }
-                } else {
-                    Button {
-                        isAddingTag = true
-                    } label: {
-                        Label("New Tag", systemImage: "plus")
-                            .font(.system(size: 12, weight: .medium))
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.tint)
-                }
-
-                Button("Apply Tag to Node") {
-                    if let nodeID = viewModel.selectedNodeID {
-                        viewModel.applySelectedTag(toNode: nodeID)
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity)
-                .disabled(viewModel.selectedNodeID == nil || viewModel.selectedTagID == nil)
-
-                Toggle("Filter on selected tag", isOn: $viewModel.filterOnTag)
-                    .font(.system(size: 12))
-                    .toggleStyle(.checkbox)
-            }
-
             Spacer()
         }
         .padding(14)
         .frame(width: 232)
         .background(Color.appSidebarBackground)
+    }
+
+    private var tagsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel("Tags")
+            VStack(spacing: 1) {
+                ForEach(viewModel.tags) { tag in
+                    tagRow(tag)
+                }
+            }
+            .background(.background)
+            .clipShape(RoundedRectangle(cornerRadius: 7))
+            .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(.separator))
+
+            if isAddingTag {
+                HStack {
+                    TextField("Tag name", text: $newTagName)
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit(addTag)
+                    Button("Add", action: addTag).disabled(newTagName.isEmpty)
+                }
+            } else {
+                Button {
+                    isAddingTag = true
+                } label: {
+                    Label("New Tag", systemImage: "plus")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.tint)
+            }
+
+            Button("Apply Tag to Node") {
+                if let nodeID = viewModel.selectedNodeID {
+                    viewModel.applySelectedTag(toNode: nodeID)
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .frame(maxWidth: .infinity)
+            .disabled(viewModel.selectedNodeID == nil || viewModel.selectedTagID == nil)
+
+            Toggle("Filter on selected tag", isOn: $viewModel.filterOnTag)
+                .font(.system(size: 12))
+                .toggleStyle(.checkbox)
+        }
     }
 
     /// Backs the "Hide items under" field with text rather than a numeric

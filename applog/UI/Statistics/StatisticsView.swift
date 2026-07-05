@@ -7,6 +7,8 @@ struct StatisticsView: View {
     let onTogglePause: () -> Void
     @Environment(\.openWindow) private var openWindow
     @State private var showPermissionBanner = true
+    @State private var isSidebarCollapsed = false
+    @State private var isTimelineCollapsed = false
 
     var body: some View {
         mainContent
@@ -16,6 +18,8 @@ struct StatisticsView: View {
             .onChange(of: viewModel.minDurationMinutes) { refreshOnChange() }
             .onChange(of: viewModel.searchText) { refreshOnChange() }
             .onChange(of: viewModel.quickSet) { refreshOnChange() }
+            .onChange(of: viewModel.customFrom) { refreshOnChange() }
+            .onChange(of: viewModel.customTo) { refreshOnChange() }
             .onChange(of: viewModel.filterOnTag) { refreshOnChange() }
             .onChange(of: viewModel.selectedTagID) { refreshOnChange() }
     }
@@ -25,17 +29,23 @@ struct StatisticsView: View {
             toolbar
             Divider()
             HStack(spacing: 0) {
-                FilterSidebar(viewModel: viewModel)
-                Divider()
+                if !isSidebarCollapsed {
+                    FilterSidebar(viewModel: viewModel)
+                    Divider()
+                }
                 TreeListView(
                     rows: viewModel.rows, maxSeconds: viewModel.maxRowSeconds,
-                    selectedNodeID: $viewModel.selectedNodeID, collapsedNodeIDs: $viewModel.collapsedNodeIDs
+                    selectedNodeID: $viewModel.selectedNodeID, expandedNodeIDs: $viewModel.expandedNodeIDs
                 )
                     .frame(maxWidth: .infinity)
-                Divider()
-                TimelinePanel(days: viewModel.timelineDays, tags: viewModel.tags)
-                    .frame(width: 240)
+                if !isTimelineCollapsed {
+                    Divider()
+                    TimelinePanel(days: viewModel.timelineDays, tags: viewModel.tags)
+                        .frame(width: 240)
+                }
             }
+            .animation(.easeInOut(duration: 0.18), value: isSidebarCollapsed)
+            .animation(.easeInOut(duration: 0.18), value: isTimelineCollapsed)
         }
     }
 
@@ -62,6 +72,14 @@ struct StatisticsView: View {
 
     private var toolbar: some View {
         HStack(spacing: 10) {
+            Button {
+                isSidebarCollapsed.toggle()
+            } label: {
+                Image(systemName: "sidebar.leading")
+            }
+            .buttonStyle(.plain)
+            .help(isSidebarCollapsed ? "Show Filters" : "Hide Filters")
+
             pauseButton
             statusPill
 
@@ -97,6 +115,16 @@ struct StatisticsView: View {
             }
             .buttonStyle(.plain)
             .help("Settings")
+
+            Button {
+                isTimelineCollapsed.toggle()
+            } label: {
+                Image(systemName: "sidebar.trailing")
+            }
+            .buttonStyle(.plain)
+            .help(isTimelineCollapsed ? "Show Daily Timeline" : "Hide Daily Timeline")
+
+
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)

@@ -313,7 +313,11 @@
     display: grid;
     grid-template-columns: 232px 1fr 240px;
     min-height: 460px;
+    transition: grid-template-columns 0.18s ease;
   }
+  .stats-body.sidebar-collapsed { grid-template-columns: 0px 1fr 240px; }
+  .stats-body.timeline-collapsed { grid-template-columns: 232px 1fr 0px; }
+  .stats-body.sidebar-collapsed.timeline-collapsed { grid-template-columns: 0px 1fr 0px; }
   .stats-sidebar {
     background: var(--sidebar-bg);
     border-right: 1px solid var(--divider);
@@ -322,7 +326,24 @@
     flex-direction: column;
     gap: 20px;
     font-size: 12px;
+    overflow: hidden;
   }
+  .panel-toggle {
+    width: 20px; height: 20px;
+    border-radius: 5px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .panel-toggle:hover { background: var(--row-hover); color: var(--text-primary); }
+  .panel-toggle svg { transition: transform 0.18s ease; }
+  .stats-body.sidebar-collapsed .panel-toggle.sidebar svg { transform: rotate(180deg); }
+  .stats-body.timeline-collapsed .panel-toggle.timeline svg { transform: rotate(180deg); }
   .filter-group {
     display: flex;
     flex-direction: column;
@@ -479,6 +500,16 @@
   }
   .tree-row.depth-1 .node { padding-left: 24px; }
   .tree-row.depth-2 .node { padding-left: 44px; }
+  .disclosure {
+    width: 10px; height: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--text-tertiary);
+  }
+  .disclosure.expanded svg { transform: rotate(90deg); }
+  .disclosure.spacer { visibility: hidden; }
   .icon {
     width: 22px; height: 22px;
     border-radius: 6px;
@@ -535,6 +566,7 @@
     flex-direction: column;
     gap: 10px;
     overflow-y: auto;
+    overflow-x: hidden;
   }
   .timeline-panel .label {
     font-size: 11px;
@@ -936,12 +968,24 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
           Filter by name
         </div>
+        <button class="icon-btn" title="Collapse All" aria-label="Collapse All">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10l5-5 5 5"/><path d="M7 19l5-5 5 5"/></svg>
+        </button>
+        <button class="icon-btn" title="Expand All" aria-label="Expand All">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8l5 5 5-5"/><path d="M7 15l5 5 5-5"/></svg>
+        </button>
         <button class="icon-btn" title="Settings" aria-label="Settings">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1.04Z"/></svg>
         </button>
       </div>
-      <div class="stats-body">
+      <div class="stats-body" id="statsBody">
         <div class="stats-sidebar">
+          <div class="filter-group" style="flex-direction:row; align-items:center; justify-content:space-between;">
+            <div class="label" style="margin:0;">Filters</div>
+            <button class="panel-toggle sidebar" title="Collapse Filters" aria-label="Collapse Filters" onclick="document.getElementById('statsBody').classList.toggle('sidebar-collapsed')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg>
+            </button>
+          </div>
           <div class="filter-group">
             <div class="label">Minimum Duration</div>
             <div class="filter-row">
@@ -996,6 +1040,7 @@
           <!-- Xcode -->
           <div class="tree-row depth-0 selected">
             <div class="node">
+              <span class="disclosure expanded"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
               <div class="icon" style="background:linear-gradient(135deg,#4c8bf5,#1d3f91)">X</div>
               <span class="node-name">Xcode</span>
               <span class="node-tag-label">Work</span>
@@ -1004,12 +1049,12 @@
             <div class="bargraph" style="width:100%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">AppTracker.xcodeproj</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">AppTracker.xcodeproj</span></div>
             <div class="duration">2h 10m</div>
             <div class="bargraph" style="width:59%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">TrackingEngine.swift</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">TrackingEngine.swift</span></div>
             <div class="duration">58m</div>
             <div class="bargraph" style="width:26%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
@@ -1019,6 +1064,7 @@
           <!-- Safari: browser -> domain -> page title (3 levels) -->
           <div class="tree-row depth-0">
             <div class="node">
+              <span class="disclosure expanded"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
               <div class="icon" style="background:linear-gradient(135deg,#5bc0f8,#0a7fd6)">◐</div>
               <span class="node-name">Safari</span>
               <span class="node-tag-label">Mixed</span>
@@ -1030,37 +1076,37 @@
             </div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">github.com</span></div>
+            <div class="node"><span class="disclosure expanded"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">github.com</span></div>
             <div class="duration">1h 20m</div>
             <div class="bargraph" style="width:36%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
           <div class="tree-row depth-2">
-            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">mrjazz/apptracker — Pull Request #42</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">mrjazz/apptracker — Pull Request #42</span></div>
             <div class="duration">52m</div>
             <div class="bargraph" style="width:23%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
           <div class="tree-row depth-2">
-            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">mrjazz/apptracker — Commits</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">mrjazz/apptracker — Commits</span></div>
             <div class="duration">28m</div>
             <div class="bargraph" style="width:13%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">news.ycombinator.com</span></div>
+            <div class="node"><span class="disclosure expanded"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">news.ycombinator.com</span></div>
             <div class="duration">35m</div>
             <div class="bargraph" style="width:16%"><div class="seg" style="width:100%;background:var(--tag-browsing)"></div></div>
           </div>
           <div class="tree-row depth-2">
-            <div class="node"><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">Ask HN: Best time tracking tools?</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">Ask HN: Best time tracking tools?</span></div>
             <div class="duration">35m</div>
             <div class="bargraph" style="width:16%"><div class="seg" style="width:100%;background:var(--tag-browsing)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">youtube.com</span></div>
+            <div class="node"><span class="disclosure expanded"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">youtube.com</span></div>
             <div class="duration">20m</div>
             <div class="bargraph" style="width:9%"><div class="seg" style="width:100%;background:var(--tag-browsing)"></div></div>
           </div>
           <div class="tree-row depth-2">
-            <div class="node"><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">WWDC24 — What's New in SwiftUI</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">WWDC24 — What's New in SwiftUI</span></div>
             <div class="duration">20m</div>
             <div class="bargraph" style="width:9%"><div class="seg" style="width:100%;background:var(--tag-browsing)"></div></div>
           </div>
@@ -1070,6 +1116,7 @@
           <!-- Slack -->
           <div class="tree-row depth-0">
             <div class="node">
+              <span class="disclosure expanded"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
               <div class="icon" style="background:linear-gradient(135deg,#c774e8,#7b3fb5)">#</div>
               <span class="node-name">Slack</span>
               <span class="node-tag-label">Comms</span>
@@ -1078,12 +1125,12 @@
             <div class="bargraph" style="width:29%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">#eng-general</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">#eng-general</span></div>
             <div class="duration">40m</div>
             <div class="bargraph" style="width:18%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">#random</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">#random</span></div>
             <div class="duration">25m</div>
             <div class="bargraph" style="width:11%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
           </div>
@@ -1092,6 +1139,7 @@
 
           <div class="tree-row depth-0">
             <div class="node">
+              <span class="disclosure expanded"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
               <div class="icon" style="background:linear-gradient(135deg,#3a3a3d,#111)">＞_</div>
               <span class="node-name">Terminal</span>
               <span class="node-tag-label">Work</span>
@@ -1100,17 +1148,17 @@
             <div class="bargraph" style="width:22%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">project-build — zsh</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">project-build — zsh</span></div>
             <div class="duration">26m</div>
             <div class="bargraph" style="width:12%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">logs — zsh</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">logs — zsh</span></div>
             <div class="duration">14m</div>
             <div class="bargraph" style="width:6%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">ssh prod-1</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">ssh prod-1</span></div>
             <div class="duration">8m</div>
             <div class="bargraph" style="width:4%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
@@ -1119,6 +1167,7 @@
 
           <div class="tree-row depth-0">
             <div class="node">
+              <span class="disclosure expanded"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
               <div class="icon" style="background:linear-gradient(135deg,#5fa7f7,#2a5fc4)">✉</div>
               <span class="node-name">Mail</span>
               <span class="node-tag-label">Comms</span>
@@ -1127,12 +1176,12 @@
             <div class="bargraph" style="width:10%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">Inbox</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">Inbox</span></div>
             <div class="duration">14m</div>
             <div class="bargraph" style="width:6%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">Q3 Roadmap — Sarah Chen</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">Q3 Roadmap — Sarah Chen</span></div>
             <div class="duration">8m</div>
             <div class="bargraph" style="width:4%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
           </div>
@@ -1141,6 +1190,7 @@
 
           <div class="tree-row depth-0">
             <div class="node">
+              <span class="disclosure expanded"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
               <div class="icon" style="background:linear-gradient(135deg,#f7ce6a,#e0a71a)">✎</div>
               <span class="node-name">Notes</span>
               <span class="node-tag-label">Mixed</span>
@@ -1152,12 +1202,12 @@
             </div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">Meeting Notes — Jul 3</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">Meeting Notes — Jul 3</span></div>
             <div class="duration">9m</div>
             <div class="bargraph" style="width:4%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
           </div>
           <div class="tree-row depth-1">
-            <div class="node"><span class="icon sm" style="background:var(--tag-untagged)"></span><span class="node-name">Grocery List</span></div>
+            <div class="node"><span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span><span class="icon sm" style="background:var(--tag-untagged)"></span><span class="node-name">Grocery List</span></div>
             <div class="duration">6m</div>
             <div class="bargraph" style="width:3%"><div class="seg" style="width:100%;background:var(--tag-untagged)"></div></div>
           </div>
@@ -1166,6 +1216,7 @@
 
           <div class="tree-row depth-0">
             <div class="node">
+              <span class="disclosure spacer"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
               <div class="icon" style="background:linear-gradient(135deg,#8e8e93,#5b5b60)">☾</div>
               <span class="node-name">Away</span>
               <span class="node-tag-label">Untagged · auto</span>
@@ -1176,7 +1227,18 @@
         </div>
 
         <div class="timeline-panel">
-          <div class="label">Daily Timeline</div>
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div class="label">Daily Timeline</div>
+            <button class="panel-toggle timeline" title="Collapse Timeline" aria-label="Collapse Timeline" onclick="document.getElementById('statsBody').classList.toggle('timeline-collapsed')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+          <div class="timeline-legend">
+            <span class="item"><span class="swatch" style="background:var(--tag-work)"></span>Work</span>
+            <span class="item"><span class="swatch" style="background:var(--tag-browsing)"></span>Browsing</span>
+            <span class="item"><span class="swatch" style="background:var(--tag-comms)"></span>Comms</span>
+            <span class="item"><span class="swatch" style="background:var(--tag-untagged)"></span>Untagged / Away</span>
+          </div>
           <div class="timeline-header">
             <span class="spacer-label"></span>
             <div class="hours"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>12a</span></div>
@@ -1335,12 +1397,6 @@
                 <div class="seg" style="left:81%;width:19%;background:var(--tag-untagged)"></div>
               </div>
             </div>
-          </div>
-          <div class="timeline-legend">
-            <span class="item"><span class="swatch" style="background:var(--tag-work)"></span>Work</span>
-            <span class="item"><span class="swatch" style="background:var(--tag-browsing)"></span>Browsing</span>
-            <span class="item"><span class="swatch" style="background:var(--tag-comms)"></span>Comms</span>
-            <span class="item"><span class="swatch" style="background:var(--tag-untagged)"></span>Untagged / Away</span>
           </div>
         </div>
       </div>

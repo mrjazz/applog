@@ -45,40 +45,44 @@ final class StatisticsViewModel: ObservableObject {
     @Published var filterOnTag = false
     @Published var minDurationMinutes: Double = 0
     @Published var searchText = ""
-    @Published var quickSet: DateQuickSet = .thisWeek {
+    @Published var quickSet: DateQuickSet = .allTime {
         didSet {
             guard let range = quickSet.range else { return }
             customFrom = range.from
             customTo = range.to
         }
     }
-    @Published var customFrom: Date = DateQuickSet.thisWeek.range?.from ?? Date()
+    /// Seeds the custom-range calendars with a sensible starting window
+    /// before the user has touched them — not tied to `quickSet`'s default
+    /// (`.allTime`), since seeding "From" at the Unix epoch would open the
+    /// calendar decades back the first time Custom Range is picked.
+    @Published var customFrom: Date = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
     @Published var customTo: Date = Date()
     @Published var timelineDays: [(label: String, blocks: [TimelineBlock])] = []
     @Published var totalTrackedToday: Int = 0
-    /// Node IDs the user has collapsed. Absence means expanded — new nodes
-    /// default open, matching each row's previous per-row default.
-    @Published var collapsedNodeIDs: Set<Int64> = []
+    /// Node IDs the user has expanded. Absence means collapsed — nodes
+    /// default closed until opened.
+    @Published var expandedNodeIDs: Set<Int64> = []
 
     var maxRowSeconds: Int {
         TreeBuilder.flatten(rows).map(\.totalSeconds).max() ?? 1
     }
 
     func expandAll() {
-        collapsedNodeIDs.removeAll()
+        expandedNodeIDs = Set(TreeBuilder.flatten(rows).filter { !$0.children.isEmpty }.map(\.id))
     }
 
     func collapseAll() {
-        collapsedNodeIDs = Set(TreeBuilder.flatten(rows).filter { !$0.children.isEmpty }.map(\.id))
+        expandedNodeIDs.removeAll()
     }
 
+    /// `ownActiveSeconds` compares whole calendar-day strings (`day BETWEEN
+    /// ? AND ?`, inclusive both ends — see Store.swift), so the upper bound
+    /// here must be `customTo` itself, not the start of the following day;
+    /// advancing to the next day would leak one extra day of data into the
+    /// selected range.
     var activeRange: (from: Date, to: Date) {
-        quickSet.range ?? (Calendar.current.startOfDay(for: customFrom), endOfDay(customTo))
-    }
-
-    private func endOfDay(_ date: Date) -> Date {
-        let cal = Calendar.current
-        return cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: date)) ?? date
+        quickSet.range ?? (Calendar.current.startOfDay(for: customFrom), customTo)
     }
 
     func setCustomFrom(_ date: Date) {

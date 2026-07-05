@@ -5,13 +5,13 @@ struct TreeListView: View {
     let rows: [TreeRow]
     let maxSeconds: Int
     @Binding var selectedNodeID: Int64?
-    @Binding var collapsedNodeIDs: Set<Int64>
+    @Binding var expandedNodeIDs: Set<Int64>
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                    TreeRowView(row: row, maxSeconds: maxSeconds, selectedNodeID: $selectedNodeID, collapsedNodeIDs: $collapsedNodeIDs)
+                    TreeRowView(row: row, maxSeconds: maxSeconds, selectedNodeID: $selectedNodeID, expandedNodeIDs: $expandedNodeIDs)
                     if index < rows.count - 1 {
                         Divider().padding(.horizontal, 18).padding(.vertical, 4)
                     }
@@ -26,16 +26,16 @@ struct TreeRowView: View {
     let row: TreeRow
     let maxSeconds: Int
     @Binding var selectedNodeID: Int64?
-    @Binding var collapsedNodeIDs: Set<Int64>
+    @Binding var expandedNodeIDs: Set<Int64>
 
-    private var isExpanded: Bool { !collapsedNodeIDs.contains(row.node.id) }
+    private var isExpanded: Bool { expandedNodeIDs.contains(row.node.id) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             content
             if isExpanded {
                 ForEach(row.children) { child in
-                    TreeRowView(row: child, maxSeconds: maxSeconds, selectedNodeID: $selectedNodeID, collapsedNodeIDs: $collapsedNodeIDs)
+                    TreeRowView(row: child, maxSeconds: maxSeconds, selectedNodeID: $selectedNodeID, expandedNodeIDs: $expandedNodeIDs)
                 }
             }
         }
@@ -88,9 +88,9 @@ struct TreeRowView: View {
         } else {
             Button {
                 if isExpanded {
-                    collapsedNodeIDs.insert(row.node.id)
+                    expandedNodeIDs.remove(row.node.id)
                 } else {
-                    collapsedNodeIDs.remove(row.node.id)
+                    expandedNodeIDs.insert(row.node.id)
                 }
             } label: {
                 Image(systemName: "chevron.right")
