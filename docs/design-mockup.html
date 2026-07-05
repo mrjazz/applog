@@ -1,0 +1,1517 @@
+<title>AppTracker — macOS App Mockup</title>
+<meta name="description" content="Visual mockups of the AppTracker menu bar app: menu, Statistics window, and Settings." />
+<style>
+  :root {
+    --canvas-1: #dfe1e8;
+    --canvas-2: #eef0f4;
+    --window-bg: #ffffff;
+    --window-bg-2: #fbfbfc;
+    --sidebar-bg: #eef0f3;
+    --toolbar-bg: #f6f7f9;
+    --border: rgba(0, 0, 0, 0.10);
+    --border-soft: rgba(0, 0, 0, 0.06);
+    --divider: rgba(0, 0, 0, 0.08);
+    --text-primary: #1c1c1e;
+    --text-secondary: #6b6b70;
+    --text-tertiary: #9a9aa0;
+    --accent: #0071e3;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(0, 113, 227, 0.10);
+    --row-hover: rgba(0, 0, 0, 0.035);
+    --control-bg: #ffffff;
+    --control-border: rgba(0, 0, 0, 0.14);
+    --track-off: rgba(0, 0, 0, 0.14);
+    --shadow-window: 0 30px 60px -20px rgba(20, 22, 30, 0.35), 0 2px 8px rgba(20, 22, 30, 0.10);
+    --tag-work: #0a84ff;
+    --tag-writing: #26a559;
+    --tag-browsing: #f4941c;
+    --tag-comms: #b054e0;
+    --tag-untagged: #9a9aa0;
+    --label-caption: #7a7a80;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --canvas-1: #0e0e10;
+      --canvas-2: #17171a;
+      --window-bg: #242426;
+      --window-bg-2: #2a2a2d;
+      --sidebar-bg: #1d1d1f;
+      --toolbar-bg: #232325;
+      --border: rgba(255, 255, 255, 0.10);
+      --border-soft: rgba(255, 255, 255, 0.07);
+      --divider: rgba(255, 255, 255, 0.09);
+      --text-primary: #f2f2f3;
+      --text-secondary: #a5a5aa;
+      --text-tertiary: #7b7b80;
+      --accent: #2f9bff;
+      --accent-ink: #ffffff;
+      --accent-soft: rgba(47, 155, 255, 0.16);
+      --row-hover: rgba(255, 255, 255, 0.045);
+      --control-bg: #3a3a3d;
+      --control-border: rgba(255, 255, 255, 0.16);
+      --track-off: rgba(255, 255, 255, 0.18);
+      --shadow-window: 0 30px 60px -20px rgba(0, 0, 0, 0.65), 0 2px 10px rgba(0, 0, 0, 0.4);
+      --tag-work: #3aa0ff;
+      --tag-writing: #34c266;
+      --tag-browsing: #ffab3d;
+      --tag-comms: #c975ee;
+      --tag-untagged: #8b8b90;
+      --label-caption: #8b8b90;
+    }
+  }
+  :root[data-theme="dark"] {
+    --canvas-1: #0e0e10;
+    --canvas-2: #17171a;
+    --window-bg: #242426;
+    --window-bg-2: #2a2a2d;
+    --sidebar-bg: #1d1d1f;
+    --toolbar-bg: #232325;
+    --border: rgba(255, 255, 255, 0.10);
+    --border-soft: rgba(255, 255, 255, 0.07);
+    --divider: rgba(255, 255, 255, 0.09);
+    --text-primary: #f2f2f3;
+    --text-secondary: #a5a5aa;
+    --text-tertiary: #7b7b80;
+    --accent: #2f9bff;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(47, 155, 255, 0.16);
+    --row-hover: rgba(255, 255, 255, 0.045);
+    --control-bg: #3a3a3d;
+    --control-border: rgba(255, 255, 255, 0.16);
+    --track-off: rgba(255, 255, 255, 0.18);
+    --shadow-window: 0 30px 60px -20px rgba(0, 0, 0, 0.65), 0 2px 10px rgba(0, 0, 0, 0.4);
+    --tag-work: #3aa0ff;
+    --tag-writing: #34c266;
+    --tag-browsing: #ffab3d;
+    --tag-comms: #c975ee;
+    --tag-untagged: #8b8b90;
+    --label-caption: #8b8b90;
+  }
+  :root[data-theme="light"] {
+    --canvas-1: #dfe1e8;
+    --canvas-2: #eef0f4;
+    --window-bg: #ffffff;
+    --window-bg-2: #fbfbfc;
+    --sidebar-bg: #eef0f3;
+    --toolbar-bg: #f6f7f9;
+    --border: rgba(0, 0, 0, 0.10);
+    --border-soft: rgba(0, 0, 0, 0.06);
+    --divider: rgba(0, 0, 0, 0.08);
+    --text-primary: #1c1c1e;
+    --text-secondary: #6b6b70;
+    --text-tertiary: #9a9aa0;
+    --accent: #0071e3;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(0, 113, 227, 0.10);
+    --row-hover: rgba(0, 0, 0, 0.035);
+    --control-bg: #ffffff;
+    --control-border: rgba(0, 0, 0, 0.14);
+    --track-off: rgba(0, 0, 0, 0.14);
+    --shadow-window: 0 30px 60px -20px rgba(20, 22, 30, 0.35), 0 2px 8px rgba(20, 22, 30, 0.10);
+    --tag-work: #0a84ff;
+    --tag-writing: #26a559;
+    --tag-browsing: #f4941c;
+    --tag-comms: #b054e0;
+    --tag-untagged: #9a9aa0;
+    --label-caption: #7a7a80;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(ellipse 1200px 700px at 20% -10%, var(--canvas-2), var(--canvas-1) 65%);
+    min-height: 100%;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    padding: 56px 24px 96px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  .page {
+    max-width: 1040px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 64px;
+  }
+
+  .intro {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 560px;
+    margin: 0 auto 8px;
+  }
+  .intro .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--label-caption);
+  }
+  .intro h1 {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .intro p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .screen {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .screen-label {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 0 4px;
+  }
+  .screen-label .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .screen-label .desc {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* ---------- Window chrome ---------- */
+  .window {
+    background: var(--window-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow-window);
+    border: 1px solid var(--border-soft);
+    overflow: hidden;
+  }
+  .titlebar {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    background: var(--toolbar-bg);
+    border-bottom: 1px solid var(--divider);
+  }
+  .traffic { display: flex; gap: 8px; }
+  .traffic span {
+    width: 12px; height: 12px; border-radius: 50%;
+    display: inline-block;
+    box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.12);
+  }
+  .traffic .r { background: #ff5f57; }
+  .traffic .y { background: #febc2e; }
+  .traffic .g { background: #28c840; }
+  .titlebar .title {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-right: 60px;
+  }
+
+  /* ---------- Statistics window ---------- */
+  .stats-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: var(--toolbar-bg);
+    border-bottom: 1px solid var(--divider);
+  }
+  .stats-toolbar .totals {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .stats-toolbar .totals b { color: var(--text-primary); font-weight: 600; }
+  .spacer { flex: 1; }
+  .search-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--control-bg);
+    border: 1px solid var(--control-border);
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    min-width: 160px;
+  }
+  .search-field svg { flex-shrink: 0; opacity: 0.6; }
+  .btn {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 7px;
+    border: 1px solid var(--control-border);
+    background: var(--control-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--row-hover); }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn:focus-visible, .icon-btn:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .icon-btn {
+    width: 27px; height: 27px;
+    border-radius: 7px;
+    border: 1px solid var(--control-border);
+    background: var(--control-bg);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { background: var(--row-hover); color: var(--text-primary); }
+
+  .stats-body {
+    display: grid;
+    grid-template-columns: 232px 1fr 240px;
+    min-height: 460px;
+  }
+  .stats-sidebar {
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--divider);
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-size: 12px;
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .filter-group .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--label-caption);
+  }
+  .filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--text-secondary);
+  }
+  .segmented {
+    display: flex;
+    background: var(--track-off);
+    border-radius: 7px;
+    padding: 2px;
+    gap: 2px;
+  }
+  .segmented button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 4px;
+    border-radius: 5px;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .segmented button.active {
+    background: var(--window-bg);
+    color: var(--text-primary);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .num-field {
+    width: 52px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    padding: 3px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--control-border);
+    background: var(--control-bg);
+    color: var(--text-primary);
+    text-align: right;
+  }
+  .date-field {
+    flex: 1;
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    padding: 3px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--control-border);
+    background: var(--control-bg);
+    color: var(--text-primary);
+  }
+  .select-field {
+    width: 100%;
+    font-size: 12px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--control-border);
+    background: var(--control-bg);
+    color: var(--text-primary);
+  }
+
+  .tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    overflow: hidden;
+    background: var(--window-bg);
+  }
+  .tag-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .tag-item:hover { background: var(--row-hover); }
+  .tag-item.selected {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .tag-item.selected .count { color: var(--accent-ink); opacity: 0.85; }
+  .swatch {
+    width: 9px; height: 9px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.12);
+  }
+  .tag-item .count {
+    margin-left: auto;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+  }
+  .add-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 6px;
+    cursor: pointer;
+  }
+  .sidebar-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sidebar-actions .btn { width: 100%; text-align: center; }
+  .filter-check {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  .filter-check input { accent-color: var(--accent); }
+
+  /* ---------- Tree ---------- */
+  .tree {
+    padding: 6px 0;
+    overflow-y: auto;
+  }
+  .tree-row {
+    display: grid;
+    grid-template-columns: 1fr 74px 240px;
+    align-items: center;
+    gap: 14px;
+    padding: 7px 18px;
+    cursor: default;
+  }
+  .tree-row:hover { background: var(--row-hover); }
+  .tree-row.selected { background: var(--accent-soft); }
+  .tree-row .node {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+  }
+  .tree-row.depth-1 .node { padding-left: 24px; }
+  .tree-row.depth-2 .node { padding-left: 44px; }
+  .icon {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .icon.sm { width: 8px; height: 8px; border-radius: 2.5px; }
+  .node-name {
+    font-size: 12.5px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tree-row.depth-1 .node-name { color: var(--text-secondary); }
+  .tree-row.depth-2 .node-name { color: var(--text-tertiary); font-size: 12px; }
+  .node-tag-label {
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .duration {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+    text-align: right;
+  }
+  .tree-row.depth-0 .duration { color: var(--text-primary); font-weight: 500; }
+  .bargraph {
+    display: flex;
+    height: 7px;
+    border-radius: 3.5px;
+    overflow: hidden;
+    background: var(--track-off);
+  }
+  .bargraph .seg { height: 100%; }
+
+  .tree-section-divider {
+    height: 1px;
+    background: var(--divider);
+    margin: 4px 18px;
+  }
+
+  /* ---------- Daily timeline panel ---------- */
+  .timeline-panel {
+    border-left: 1px solid var(--divider);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+  }
+  .timeline-panel .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--label-caption);
+  }
+  .timeline-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .timeline-header .spacer-label { width: 34px; flex-shrink: 0; }
+  .timeline-header .hours {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+  .timeline-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .timeline-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .timeline-row .day-label {
+    width: 34px;
+    flex-shrink: 0;
+    text-align: right;
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+  .day-track {
+    position: relative;
+    flex: 1;
+    height: 11px;
+    border-radius: 2px;
+    overflow: hidden;
+    background-color: var(--track-off);
+    background-image: linear-gradient(
+      to right,
+      transparent 24.4%, var(--divider) 24.4% 25%, transparent 25%,
+      transparent 49.4%, var(--divider) 49.4% 50%, transparent 50%,
+      transparent 74.4%, var(--divider) 74.4% 75%, transparent 75%
+    );
+  }
+  .day-track .seg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+  .timeline-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding-top: 2px;
+  }
+  .timeline-legend .item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--text-tertiary);
+  }
+  .timeline-legend .swatch { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* ---------- Settings window ---------- */
+  .settings-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: var(--toolbar-bg);
+    border-bottom: 1px solid var(--divider);
+  }
+  .settings-header .glyph {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    color: #fff;
+    background: linear-gradient(135deg,#8e8e93,#5b5b60);
+    flex-shrink: 0;
+  }
+  .settings-header .title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .settings-content {
+    padding: 22px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    background: var(--window-bg-2);
+  }
+  .settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .settings-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--label-caption);
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .settings-section-title .dot {
+    width: 7px; height: 7px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .settings-group {
+    background: var(--window-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .settings-group .group-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--label-caption);
+    padding: 4px 2px;
+    margin: 0 0 6px;
+  }
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row .row-label {
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+  .settings-row .row-sub {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+  .toggle {
+    width: 36px; height: 21px;
+    border-radius: 11px;
+    background: var(--track-off);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .toggle.on::after { left: 17px; }
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .stepper .value {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    min-width: 92px;
+    text-align: right;
+  }
+  .stepper .controls {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--control-border);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .stepper .controls button {
+    border: none;
+    background: var(--control-bg);
+    width: 18px; height: 11px;
+    font-size: 8px;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .stepper .controls button:first-child { border-bottom: 1px solid var(--control-border); }
+
+  .list-box {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--window-bg);
+  }
+  .list-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--divider);
+  }
+  .list-row:last-child { border-bottom: none; }
+  .list-row .remove {
+    color: var(--text-tertiary);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .list-row .remove:hover { color: var(--text-primary); }
+  .settings-note {
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    padding: 10px 16px;
+  }
+  .export-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .export-row:last-child { border-bottom: none; }
+  .export-row .row-label { font-size: 13px; color: var(--text-primary); }
+  .export-row .row-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; max-width: 340px; }
+  .export-row .btn-group { display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* ---------- Menu bar ---------- */
+  .menubar-frame {
+    background: var(--window-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow-window);
+    border: 1px solid var(--border-soft);
+    overflow: hidden;
+  }
+  .menubar {
+    height: 26px;
+    background: var(--toolbar-bg);
+    border-bottom: 1px solid var(--divider);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    padding: 0 14px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .menubar-status-icons { display: flex; align-items: center; gap: 12px; }
+  .menu-surface {
+    padding: 40px 40px 48px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    background: var(--canvas-2);
+  }
+  .click-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    max-width: 260px;
+    color: var(--accent);
+    padding-top: 4px;
+  }
+  .click-callout-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .click-callout-sub {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-top: 2px;
+  }
+  .menu {
+    width: 200px;
+    background: var(--window-bg);
+    border-radius: 9px;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.35), 0 0 0 0.5px var(--border);
+    padding: 6px;
+    font-size: 13px;
+  }
+  .menu-compact { width: 190px; }
+  .menu-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    padding: 4px 10px 6px;
+  }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-radius: 5px;
+    color: var(--text-primary);
+    cursor: default;
+  }
+  .menu-item:hover { background: var(--accent); color: var(--accent-ink); }
+  .menu-item:hover .menu-shortcut { color: var(--accent-ink); opacity: 0.85; }
+  .menu-shortcut { font-size: 11px; color: var(--text-tertiary); }
+  .menu-divider { height: 1px; background: var(--divider); margin: 5px 6px; }
+
+  .caption-foot {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    max-width: 480px;
+    margin: -8px auto 0;
+    line-height: 1.5;
+  }
+</style>
+
+<div class="page">
+
+  <div class="intro">
+    <div class="eyebrow">AppTracker for macOS</div>
+    <h1>Screen designs, in the native language</h1>
+    <p>Statistics is the main application window. The menu bar icon opens it directly — no dropdown to navigate through. Tracking stays quiet: no interruptions, no prompts.</p>
+  </div>
+
+  <!-- MENU BAR -->
+  <div class="screen">
+    <div class="screen-label">
+      <span class="name">Menu Bar</span>
+      <span class="desc">Click opens Statistics directly — there is no dropdown menu</span>
+    </div>
+    <div class="menubar-frame">
+      <div class="menubar">
+        <div class="menubar-status-icons">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3a4 4 0 0 0-4 4v4a4 4 0 0 0 8 0V7a4 4 0 0 0-4-4Z"/><path d="M6 11a6 6 0 0 0 12 0M12 19v2"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="6" width="18" height="12" rx="2"/><path d="M23 8v8l-4-2.5v-3z"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/></svg>
+        </div>
+      </div>
+      <div class="menu-surface">
+        <div class="click-callout">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4v9M9 4a3 3 0 0 1 3 3M9 13a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3v-2a3 3 0 0 0-3-3"/></svg>
+          <div>
+            <div class="click-callout-title">Click</div>
+            <div class="click-callout-sub">Opens and focuses the Statistics window</div>
+          </div>
+        </div>
+        <div class="menu menu-compact">
+          <div class="menu-eyebrow">Right-click</div>
+          <div class="menu-item"><span>Pause Tracking</span></div>
+          <div class="menu-item"><span>Settings…</span><span class="menu-shortcut">⌘,</span></div>
+          <div class="menu-divider"></div>
+          <div class="menu-item"><span>Quit AppTracker</span><span class="menu-shortcut">⌘Q</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATISTICS -->
+  <div class="screen">
+    <div class="screen-label">
+      <span class="name">Statistics — Main Window</span>
+      <span class="desc">Hierarchical usage, filtered and tagged, with a daily timeline alongside</span>
+    </div>
+    <div class="window">
+      <div class="titlebar">
+        <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="title">Statistics</div>
+      </div>
+      <div class="stats-toolbar">
+        <span class="totals">Today · <b>8h 27m</b> tracked</span>
+        <div class="spacer"></div>
+        <div class="search-field">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          Filter by name
+        </div>
+        <button class="icon-btn" title="Settings" aria-label="Settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1.04-1.56V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1.04H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1.04Z"/></svg>
+        </button>
+      </div>
+      <div class="stats-body">
+        <div class="stats-sidebar">
+          <div class="filter-group">
+            <div class="label">Minimum Duration</div>
+            <div class="filter-row">
+              <span>Hide items under</span>
+              <input class="num-field" type="text" value="2 min" />
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="label">Name Contains</div>
+            <div class="search-field" style="width:100%; min-width:0;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              Substring…
+            </div>
+          </div>
+          <div class="filter-group">
+            <div class="label">Date Range</div>
+            <div class="filter-row">
+              <input class="date-field" type="text" value="Jun 29, 2026" />
+              <span style="color:var(--text-tertiary)">–</span>
+              <input class="date-field" type="text" value="Jul 5, 2026" />
+            </div>
+            <select class="select-field">
+              <option>Today</option>
+              <option selected>This Week</option>
+              <option>This Month</option>
+              <option>All Time</option>
+              <option>Custom Range</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <div class="label">Tags</div>
+            <div class="tag-list">
+              <div class="tag-item selected"><span class="swatch" style="background:var(--tag-work)"></span>Work<span class="count">5h 59m</span></div>
+              <div class="tag-item"><span class="swatch" style="background:var(--tag-browsing)"></span>Browsing<span class="count">55m</span></div>
+              <div class="tag-item"><span class="swatch" style="background:var(--tag-comms)"></span>Comms<span class="count">1h 27m</span></div>
+              <div class="tag-item"><span class="swatch" style="background:var(--tag-writing)"></span>Writing<span class="count">0m</span></div>
+              <div class="tag-item"><span class="swatch" style="background:var(--tag-untagged)"></span>Untagged<span class="count">48m</span></div>
+            </div>
+            <div class="add-tag">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+              New Tag
+            </div>
+            <div class="sidebar-actions" style="margin-top:4px;">
+              <button class="btn primary">Apply Tag to Node</button>
+              <button class="btn">Rename Tag</button>
+            </div>
+            <label class="filter-check"><input type="checkbox" />Filter on selected tag</label>
+          </div>
+        </div>
+
+        <div class="tree">
+          <!-- Xcode -->
+          <div class="tree-row depth-0 selected">
+            <div class="node">
+              <div class="icon" style="background:linear-gradient(135deg,#4c8bf5,#1d3f91)">X</div>
+              <span class="node-name">Xcode</span>
+              <span class="node-tag-label">Work</span>
+            </div>
+            <div class="duration">3h 42m</div>
+            <div class="bargraph" style="width:100%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">AppTracker.xcodeproj</span></div>
+            <div class="duration">2h 10m</div>
+            <div class="bargraph" style="width:59%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">TrackingEngine.swift</span></div>
+            <div class="duration">58m</div>
+            <div class="bargraph" style="width:26%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+
+          <div class="tree-section-divider"></div>
+
+          <!-- Safari: browser -> domain -> page title (3 levels) -->
+          <div class="tree-row depth-0">
+            <div class="node">
+              <div class="icon" style="background:linear-gradient(135deg,#5bc0f8,#0a7fd6)">◐</div>
+              <span class="node-name">Safari</span>
+              <span class="node-tag-label">Mixed</span>
+            </div>
+            <div class="duration">2h 15m</div>
+            <div class="bargraph" style="width:61%">
+              <div class="seg" style="width:59%;background:var(--tag-work)"></div>
+              <div class="seg" style="width:41%;background:var(--tag-browsing)"></div>
+            </div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">github.com</span></div>
+            <div class="duration">1h 20m</div>
+            <div class="bargraph" style="width:36%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+          <div class="tree-row depth-2">
+            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">mrjazz/apptracker — Pull Request #42</span></div>
+            <div class="duration">52m</div>
+            <div class="bargraph" style="width:23%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+          <div class="tree-row depth-2">
+            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">mrjazz/apptracker — Commits</span></div>
+            <div class="duration">28m</div>
+            <div class="bargraph" style="width:13%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">news.ycombinator.com</span></div>
+            <div class="duration">35m</div>
+            <div class="bargraph" style="width:16%"><div class="seg" style="width:100%;background:var(--tag-browsing)"></div></div>
+          </div>
+          <div class="tree-row depth-2">
+            <div class="node"><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">Ask HN: Best time tracking tools?</span></div>
+            <div class="duration">35m</div>
+            <div class="bargraph" style="width:16%"><div class="seg" style="width:100%;background:var(--tag-browsing)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">youtube.com</span></div>
+            <div class="duration">20m</div>
+            <div class="bargraph" style="width:9%"><div class="seg" style="width:100%;background:var(--tag-browsing)"></div></div>
+          </div>
+          <div class="tree-row depth-2">
+            <div class="node"><span class="icon sm" style="background:var(--tag-browsing)"></span><span class="node-name">WWDC24 — What's New in SwiftUI</span></div>
+            <div class="duration">20m</div>
+            <div class="bargraph" style="width:9%"><div class="seg" style="width:100%;background:var(--tag-browsing)"></div></div>
+          </div>
+
+          <div class="tree-section-divider"></div>
+
+          <!-- Slack -->
+          <div class="tree-row depth-0">
+            <div class="node">
+              <div class="icon" style="background:linear-gradient(135deg,#c774e8,#7b3fb5)">#</div>
+              <span class="node-name">Slack</span>
+              <span class="node-tag-label">Comms</span>
+            </div>
+            <div class="duration">1h 05m</div>
+            <div class="bargraph" style="width:29%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">#eng-general</span></div>
+            <div class="duration">40m</div>
+            <div class="bargraph" style="width:18%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">#random</span></div>
+            <div class="duration">25m</div>
+            <div class="bargraph" style="width:11%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
+          </div>
+
+          <div class="tree-section-divider"></div>
+
+          <div class="tree-row depth-0">
+            <div class="node">
+              <div class="icon" style="background:linear-gradient(135deg,#3a3a3d,#111)">＞_</div>
+              <span class="node-name">Terminal</span>
+              <span class="node-tag-label">Work</span>
+            </div>
+            <div class="duration">48m</div>
+            <div class="bargraph" style="width:22%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">project-build — zsh</span></div>
+            <div class="duration">26m</div>
+            <div class="bargraph" style="width:12%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">logs — zsh</span></div>
+            <div class="duration">14m</div>
+            <div class="bargraph" style="width:6%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">ssh prod-1</span></div>
+            <div class="duration">8m</div>
+            <div class="bargraph" style="width:4%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+
+          <div class="tree-section-divider"></div>
+
+          <div class="tree-row depth-0">
+            <div class="node">
+              <div class="icon" style="background:linear-gradient(135deg,#5fa7f7,#2a5fc4)">✉</div>
+              <span class="node-name">Mail</span>
+              <span class="node-tag-label">Comms</span>
+            </div>
+            <div class="duration">22m</div>
+            <div class="bargraph" style="width:10%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">Inbox</span></div>
+            <div class="duration">14m</div>
+            <div class="bargraph" style="width:6%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-comms)"></span><span class="node-name">Q3 Roadmap — Sarah Chen</span></div>
+            <div class="duration">8m</div>
+            <div class="bargraph" style="width:4%"><div class="seg" style="width:100%;background:var(--tag-comms)"></div></div>
+          </div>
+
+          <div class="tree-section-divider"></div>
+
+          <div class="tree-row depth-0">
+            <div class="node">
+              <div class="icon" style="background:linear-gradient(135deg,#f7ce6a,#e0a71a)">✎</div>
+              <span class="node-name">Notes</span>
+              <span class="node-tag-label">Mixed</span>
+            </div>
+            <div class="duration">15m</div>
+            <div class="bargraph" style="width:7%">
+              <div class="seg" style="width:60%;background:var(--tag-work)"></div>
+              <div class="seg" style="width:40%;background:var(--tag-untagged)"></div>
+            </div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-work)"></span><span class="node-name">Meeting Notes — Jul 3</span></div>
+            <div class="duration">9m</div>
+            <div class="bargraph" style="width:4%"><div class="seg" style="width:100%;background:var(--tag-work)"></div></div>
+          </div>
+          <div class="tree-row depth-1">
+            <div class="node"><span class="icon sm" style="background:var(--tag-untagged)"></span><span class="node-name">Grocery List</span></div>
+            <div class="duration">6m</div>
+            <div class="bargraph" style="width:3%"><div class="seg" style="width:100%;background:var(--tag-untagged)"></div></div>
+          </div>
+
+          <div class="tree-section-divider"></div>
+
+          <div class="tree-row depth-0">
+            <div class="node">
+              <div class="icon" style="background:linear-gradient(135deg,#8e8e93,#5b5b60)">☾</div>
+              <span class="node-name">Away</span>
+              <span class="node-tag-label">Untagged · auto</span>
+            </div>
+            <div class="duration">42m</div>
+            <div class="bargraph" style="width:19%"><div class="seg" style="width:100%;background:var(--tag-untagged)"></div></div>
+          </div>
+        </div>
+
+        <div class="timeline-panel">
+          <div class="label">Daily Timeline</div>
+          <div class="timeline-header">
+            <span class="spacer-label"></span>
+            <div class="hours"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>12a</span></div>
+          </div>
+          <div class="timeline-rows">
+            <div class="timeline-row">
+              <span class="day-label">Jul 5</span>
+              <div class="day-track">
+                <div class="seg" style="left:33%;width:17%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:50%;width:2%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:54%;width:2%;background:var(--tag-comms)"></div>
+                <div class="seg" style="left:56%;width:17%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:73%;width:2%;background:var(--tag-browsing)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jul 4</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:29%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:29%;width:21%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:50%;width:2%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:52%;width:19%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:71%;width:4%;background:var(--tag-comms)"></div>
+                <div class="seg" style="left:75%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:79%;width:21%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jul 3</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:31%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:31%;width:15%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:46%;width:2%;background:var(--tag-comms)"></div>
+                <div class="seg" style="left:48%;width:19%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:67%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:71%;width:8%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:79%;width:21%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jul 2</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:38%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:38%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:42%;width:16%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:58%;width:9%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:67%;width:8%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:75%;width:25%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jul 1</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:33%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:33%;width:17%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:50%;width:2%;background:var(--tag-comms)"></div>
+                <div class="seg" style="left:52%;width:25%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:77%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:81%;width:19%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jun 30</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:29%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:29%;width:19%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:48%;width:2%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:50%;width:21%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:71%;width:4%;background:var(--tag-comms)"></div>
+                <div class="seg" style="left:75%;width:4%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:79%;width:21%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jun 29</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:33%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:33%;width:21%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:54%;width:2%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:56%;width:19%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:75%;width:25%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jun 28</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:42%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:42%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:46%;width:17%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:63%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:67%;width:33%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jun 27</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:29%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:29%;width:21%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:50%;width:2%;background:var(--tag-comms)"></div>
+                <div class="seg" style="left:52%;width:21%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:73%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:77%;width:4%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:81%;width:19%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jun 26</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:33%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:33%;width:13%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:46%;width:2%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:48%;width:23%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:71%;width:4%;background:var(--tag-comms)"></div>
+                <div class="seg" style="left:75%;width:25%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jun 25</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:29%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:29%;width:25%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:54%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:58%;width:17%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:75%;width:25%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jun 24</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:38%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:38%;width:13%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:50%;width:2%;background:var(--tag-comms)"></div>
+                <div class="seg" style="left:52%;width:19%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:71%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:75%;width:25%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jun 23</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:46%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:46%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:50%;width:21%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:71%;width:4%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:75%;width:25%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+            <div class="timeline-row">
+              <span class="day-label">Jun 22</span>
+              <div class="day-track">
+                <div class="seg" style="left:0%;width:29%;background:var(--tag-untagged)"></div>
+                <div class="seg" style="left:29%;width:21%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:50%;width:2%;background:var(--tag-browsing)"></div>
+                <div class="seg" style="left:52%;width:25%;background:var(--tag-work)"></div>
+                <div class="seg" style="left:77%;width:4%;background:var(--tag-comms)"></div>
+                <div class="seg" style="left:81%;width:19%;background:var(--tag-untagged)"></div>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-legend">
+            <span class="item"><span class="swatch" style="background:var(--tag-work)"></span>Work</span>
+            <span class="item"><span class="swatch" style="background:var(--tag-browsing)"></span>Browsing</span>
+            <span class="item"><span class="swatch" style="background:var(--tag-comms)"></span>Comms</span>
+            <span class="item"><span class="swatch" style="background:var(--tag-untagged)"></span>Untagged / Away</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS — ONE SCREEN -->
+  <div class="screen">
+    <div class="screen-label">
+      <span class="name">Settings</span>
+      <span class="desc">Opened from the gear button in the Statistics toolbar — every section on one page, no tabs</span>
+    </div>
+    <div class="window">
+      <div class="titlebar">
+        <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      </div>
+      <div class="settings-header">
+        <div class="glyph">⚙</div>
+        <div class="title">Settings</div>
+      </div>
+      <div class="settings-content">
+
+        <div class="settings-section">
+          <div class="settings-section-title"><span class="dot" style="background:linear-gradient(135deg,#8e8e93,#5b5b60)"></span>General</div>
+          <div class="settings-group">
+            <div class="settings-row">
+              <div>
+                <div class="row-label">Launch AppTracker at login</div>
+                <div class="row-sub">Starts automatically when you sign in</div>
+              </div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="row-label">Show in Dock</div>
+                <div class="row-sub">Off by default — menu bar only</div>
+              </div>
+              <div class="toggle"></div>
+            </div>
+            <div class="settings-row">
+              <div class="row-label">Sample frequency</div>
+              <div class="stepper">
+                <span class="value">Every 5 seconds</span>
+                <div class="controls"><button>▲</button><button>▼</button></div>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="row-label">Menu bar icon</div>
+                <div class="row-sub">Clicking it always opens Statistics</div>
+              </div>
+              <div class="segmented" style="width:180px">
+                <button class="active">Glyph</button>
+                <button>Time</button>
+                <button>Hidden</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title"><span class="dot" style="background:linear-gradient(135deg,#5bc0f8,#0a7fd6)"></span>Idle &amp; Away</div>
+          <div class="settings-group">
+            <div class="settings-row">
+              <div>
+                <div class="row-label">Semi-idle after</div>
+                <div class="row-sub">Samples are flagged semi-idle below this</div>
+              </div>
+              <div class="stepper">
+                <span class="value">10 seconds</span>
+                <div class="controls"><button>▲</button><button>▼</button></div>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="row-label">Fully idle after</div>
+                <div class="row-sub">Sampling pauses; time accrues to Away</div>
+              </div>
+              <div class="stepper">
+                <span class="value">3 minutes</span>
+                <div class="controls"><button>▲</button><button>▼</button></div>
+              </div>
+            </div>
+            <div class="settings-note">When you come back, elapsed idle time is added to the "Away" node in Statistics automatically — no dialog interrupts you. Tag or rename it from the tree whenever you like.</div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title"><span class="dot" style="background:linear-gradient(135deg,#7ed88a,#1f9e46)"></span>Storage</div>
+          <div class="settings-group">
+            <div class="settings-row">
+              <div class="row-label">Autosave interval</div>
+              <div class="stepper">
+                <span class="value">Every 10 minutes</span>
+                <div class="controls"><button>▲</button><button>▼</button></div>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="row-label">Keep backups</div>
+              <div class="stepper">
+                <span class="value">Last 10 saves</span>
+                <div class="controls"><button>▲</button><button>▼</button></div>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="row-label">Cull items under</div>
+                <div class="row-sub">Folded into their parent node on load</div>
+              </div>
+              <div class="stepper">
+                <span class="value">60 sec · 30 days old</span>
+                <div class="controls"><button>▲</button><button>▼</button></div>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div class="row-label">Database location</div>
+              <button class="btn">Show in Finder</button>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="row-label">Restore from backup</div>
+                <div class="row-sub">If the database won't open, pick an earlier snapshot</div>
+              </div>
+              <button class="btn">Restore…</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title"><span class="dot" style="background:linear-gradient(135deg,#f2a65a,#d97a1c)"></span>Privacy</div>
+          <div class="settings-group">
+            <div class="filter-group" style="padding:12px 16px 4px;">
+              <div class="label">Excluded Apps</div>
+            </div>
+            <div class="list-box" style="margin:0 16px 12px; width:auto;">
+              <div class="list-row">1Password<span class="remove">✕</span></div>
+              <div class="list-row">Messages<span class="remove">✕</span></div>
+            </div>
+            <div class="settings-row">
+              <span></span>
+              <button class="btn">Add App…</button>
+            </div>
+            <div class="filter-group" style="padding:12px 16px 4px;">
+              <div class="label">Excluded Domains</div>
+            </div>
+            <div class="list-box" style="margin:0 16px 12px; width:auto;">
+              <div class="list-row">mail.google.com<span class="remove">✕</span></div>
+            </div>
+            <div class="settings-row">
+              <span></span>
+              <button class="btn">Add Domain…</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title"><span class="dot" style="background:linear-gradient(135deg,#e88a9e,#c23f63)"></span>Export</div>
+          <div class="settings-group">
+            <div class="export-row">
+              <div>
+                <div class="row-label">HTML Report</div>
+                <div class="row-sub">A shareable, self-contained page of the current Statistics filters</div>
+              </div>
+              <div class="btn-group"><button class="btn primary">Export HTML…</button></div>
+            </div>
+            <div class="export-row">
+              <div>
+                <div class="row-label">CSV / JSON</div>
+                <div class="row-sub">Structured data for spreadsheets or other tools</div>
+              </div>
+              <div class="btn-group"><button class="btn">Export CSV…</button><button class="btn">Export JSON…</button></div>
+            </div>
+            <div class="export-row">
+              <div>
+                <div class="row-label">Export Database</div>
+                <div class="row-sub">Save the currently filtered subset for merging on another Mac</div>
+              </div>
+              <div class="btn-group"><button class="btn">Export…</button></div>
+            </div>
+            <div class="export-row">
+              <div>
+                <div class="row-label">Merge Database</div>
+                <div class="row-sub">Combine an exported database file into this one</div>
+              </div>
+              <div class="btn-group"><button class="btn">Merge…</button></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <p class="caption-foot">Colors, spacing, and controls follow macOS Sonoma/Sequoia conventions — vibrant sidebars, grouped inset settings rows, and system typography — so the app feels at home rather than skinned.</p>
+
+</div>
