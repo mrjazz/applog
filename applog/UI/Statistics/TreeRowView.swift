@@ -5,12 +5,13 @@ struct TreeListView: View {
     let rows: [TreeRow]
     let maxSeconds: Int
     @Binding var selectedNodeID: Int64?
+    @Binding var collapsedNodeIDs: Set<Int64>
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                    TreeRowView(row: row, maxSeconds: maxSeconds, selectedNodeID: $selectedNodeID)
+                    TreeRowView(row: row, maxSeconds: maxSeconds, selectedNodeID: $selectedNodeID, collapsedNodeIDs: $collapsedNodeIDs)
                     if index < rows.count - 1 {
                         Divider().padding(.horizontal, 18).padding(.vertical, 4)
                     }
@@ -25,14 +26,16 @@ struct TreeRowView: View {
     let row: TreeRow
     let maxSeconds: Int
     @Binding var selectedNodeID: Int64?
-    @State private var isExpanded = true
+    @Binding var collapsedNodeIDs: Set<Int64>
+
+    private var isExpanded: Bool { !collapsedNodeIDs.contains(row.node.id) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             content
             if isExpanded {
                 ForEach(row.children) { child in
-                    TreeRowView(row: child, maxSeconds: maxSeconds, selectedNodeID: $selectedNodeID)
+                    TreeRowView(row: child, maxSeconds: maxSeconds, selectedNodeID: $selectedNodeID, collapsedNodeIDs: $collapsedNodeIDs)
                 }
             }
         }
@@ -84,7 +87,11 @@ struct TreeRowView: View {
             Color.clear.frame(width: 10)
         } else {
             Button {
-                isExpanded.toggle()
+                if isExpanded {
+                    collapsedNodeIDs.insert(row.node.id)
+                } else {
+                    collapsedNodeIDs.remove(row.node.id)
+                }
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 9, weight: .semibold))

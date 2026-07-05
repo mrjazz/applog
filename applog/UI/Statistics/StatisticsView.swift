@@ -27,10 +27,13 @@ struct StatisticsView: View {
             HStack(spacing: 0) {
                 FilterSidebar(viewModel: viewModel)
                 Divider()
-                TreeListView(rows: viewModel.rows, maxSeconds: viewModel.maxRowSeconds, selectedNodeID: $viewModel.selectedNodeID)
+                TreeListView(
+                    rows: viewModel.rows, maxSeconds: viewModel.maxRowSeconds,
+                    selectedNodeID: $viewModel.selectedNodeID, collapsedNodeIDs: $viewModel.collapsedNodeIDs
+                )
                     .frame(maxWidth: .infinity)
                 Divider()
-                TimelinePanel(days: viewModel.timelineDays)
+                TimelinePanel(days: viewModel.timelineDays, tags: viewModel.tags)
                     .frame(width: 240)
             }
         }
@@ -70,6 +73,22 @@ struct StatisticsView: View {
             .font(.system(size: 12))
 
             Spacer()
+
+            Button {
+                viewModel.collapseAll()
+            } label: {
+                Image(systemName: "chevron.up.2")
+            }
+            .buttonStyle(.plain)
+            .help("Collapse All")
+
+            Button {
+                viewModel.expandAll()
+            } label: {
+                Image(systemName: "chevron.down.2")
+            }
+            .buttonStyle(.plain)
+            .help("Expand All")
 
             Button {
                 openWindow(id: "settings")

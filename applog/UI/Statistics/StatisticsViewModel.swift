@@ -56,9 +56,20 @@ final class StatisticsViewModel: ObservableObject {
     @Published var customTo: Date = Date()
     @Published var timelineDays: [(label: String, blocks: [TimelineBlock])] = []
     @Published var totalTrackedToday: Int = 0
+    /// Node IDs the user has collapsed. Absence means expanded — new nodes
+    /// default open, matching each row's previous per-row default.
+    @Published var collapsedNodeIDs: Set<Int64> = []
 
     var maxRowSeconds: Int {
         TreeBuilder.flatten(rows).map(\.totalSeconds).max() ?? 1
+    }
+
+    func expandAll() {
+        collapsedNodeIDs.removeAll()
+    }
+
+    func collapseAll() {
+        collapsedNodeIDs = Set(TreeBuilder.flatten(rows).filter { !$0.children.isEmpty }.map(\.id))
     }
 
     var activeRange: (from: Date, to: Date) {
