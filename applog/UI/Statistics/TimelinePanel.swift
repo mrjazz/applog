@@ -5,21 +5,19 @@ import SwiftUI
 struct TimelinePanel: View {
     let days: [(label: String, blocks: [TimelineBlock])]
 
+    /// ScrollView is greedy along its scroll axis regardless of any frame
+    /// modifier on it or its content, and internally centers content that's
+    /// shorter than the space it was given. The only reliable fix is to
+    /// measure that space and force the content to fill at least it, so
+    /// there's nothing left to center — see the GeometryReader below.
+    @State private var scrollAreaHeight: CGFloat = 0
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("DAILY TIMELINE")
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.secondary)
                 .tracking(0.5)
-
-            HStack(spacing: 8) {
-                Color.clear.frame(width: 34)
-                HStack {
-                    Text("12a"); Spacer(); Text("6a"); Spacer(); Text("12p"); Spacer(); Text("6p"); Spacer(); Text("12a")
-                }
-                .font(.system(size: 9))
-                .foregroundStyle(.tertiary)
-            }
 
             ScrollView {
                 VStack(spacing: 5) {
@@ -35,20 +33,15 @@ struct TimelinePanel: View {
                         }
                     }
                 }
+                .frame(minHeight: scrollAreaHeight, alignment: .top)
             }
-
-            HStack(spacing: 12) {
-                ForEach(DefaultTagPalette.swatches, id: \.name) { swatch in
-                    HStack(spacing: 5) {
-                        RoundedRectangle(cornerRadius: 2).fill(Color(hex: swatch.hex)).frame(width: 8, height: 8)
-                        Text(swatch.name).font(.system(size: 10)).foregroundStyle(.tertiary)
-                    }
+            .background(
+                GeometryReader { geo in
+                    Color.clear
+                        .onAppear { scrollAreaHeight = geo.size.height }
+                        .onChange(of: geo.size.height) { scrollAreaHeight = geo.size.height }
                 }
-                HStack(spacing: 5) {
-                    RoundedRectangle(cornerRadius: 2).fill(Color(hex: TreeBuilder.untaggedColorHex)).frame(width: 8, height: 8)
-                    Text("Untagged / Away").font(.system(size: 10)).foregroundStyle(.tertiary)
-                }
-            }
+            )
         }
         .padding(14)
     }

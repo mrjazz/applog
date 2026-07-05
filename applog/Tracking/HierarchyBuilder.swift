@@ -26,13 +26,13 @@ nonisolated enum HierarchyBuilder {
         pattern: #"([a-zA-Z0-9][a-zA-Z0-9-]*\.)+[a-zA-Z]{2,}"#
     )
 
-    static func chain(bundleID: String, appName: String, windowTitle: String?) -> [HierarchyLevel] {
+    static func chain(bundleID: String, appName: String, windowTitle: String?, tabURL: String? = nil) -> [HierarchyLevel] {
         var levels: [HierarchyLevel] = [HierarchyLevel(kind: .app, name: appName)]
 
         guard let title = windowTitle, !title.isEmpty else { return levels }
 
         if browserBundleIDs.contains(bundleID) {
-            let domain = extractDomain(from: title) ?? "Unknown"
+            let domain = tabURL.flatMap(extractHost) ?? extractDomain(from: title) ?? "Unknown"
             levels.append(HierarchyLevel(kind: .domain, name: domain))
             levels.append(HierarchyLevel(kind: .pageTitle, name: title))
         } else {
@@ -41,6 +41,14 @@ nonisolated enum HierarchyBuilder {
             }
         }
         return levels
+    }
+
+    /// Parses the real domain out of an actual tab URL (reliable) rather
+    /// than guessing from the page title (`extractDomain`, kept only as a
+    /// fallback for browsers Apple Events can't query, e.g. Firefox).
+    private static func extractHost(from urlString: String) -> String? {
+        guard let host = URL(string: urlString)?.host else { return nil }
+        return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
     }
 
     private static func splitOnDelimiters(_ title: String) -> [String] {

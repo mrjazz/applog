@@ -63,6 +63,15 @@ struct TreeRow: Identifiable {
         if let only = nonZero.first?.key { return only.name }
         return "Untagged"
     }
+
+    /// The single tag this node resolves to, if any — `nil` for "Mixed" (more
+    /// than one tag among its descendants) or "Untagged", which render as a
+    /// neutral pill instead of a tag color.
+    var resolvedTag: Tag? {
+        let nonZero = tagBreakdown.filter { $0.value > 0 }
+        guard nonZero.count == 1 else { return nil }
+        return nonZero.first?.key
+    }
 }
 
 /// One colored block on the daily timeline panel.

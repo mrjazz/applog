@@ -2,8 +2,8 @@ import SwiftUI
 
 struct FilterSidebar: View {
     @ObservedObject var viewModel: StatisticsViewModel
+    @State private var renamingTagID: Int64?
     @State private var renameText = ""
-    @State private var isRenaming = false
     @State private var isAddingTag = false
     @State private var newTagName = ""
 
@@ -16,7 +16,7 @@ struct FilterSidebar: View {
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                     Spacer()
-                    TextField("", value: $viewModel.minDurationMinutes, format: .number)
+                    TextField("0", text: minDurationText)
                         .frame(width: 44)
                         .multilineTextAlignment(.trailing)
                         .textFieldStyle(.roundedBorder)
@@ -33,15 +33,31 @@ struct FilterSidebar: View {
             VStack(alignment: .leading, spacing: 8) {
                 sectionLabel("Date Range")
                 HStack(spacing: 6) {
-                    Text(dateRangeFrom).font(.system(size: 11.5)).foregroundStyle(.secondary)
+                    DatePicker(
+                        "", selection: Binding(get: { viewModel.customFrom }, set: viewModel.setCustomFrom),
+                        in: ...viewModel.customTo, displayedComponents: .date
+                    )
+                    .labelsHidden()
+                    .font(.system(size: 11.5))
+
                     Text("–").foregroundStyle(.tertiary)
-                    Text(dateRangeTo).font(.system(size: 11.5)).foregroundStyle(.secondary)
+
+                    DatePicker(
+                        "", selection: Binding(get: { viewModel.customTo }, set: viewModel.setCustomTo),
+                        in: viewModel.customFrom...Date(), displayedComponents: .date
+                    )
+                    .labelsHidden()
+                    .font(.system(size: 11.5))
                 }
                 Picker("", selection: $viewModel.quickSet) {
                     ForEach(DateQuickSet.allCases) { Text($0.rawValue).tag($0) }
                 }
                 .labelsHidden()
                 .pickerStyle(.menu)
+
+                if viewModel.quickSet == .custom {
+                    customRangeCalendars
+                }
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -73,32 +89,14 @@ struct FilterSidebar: View {
                     .foregroundStyle(.tint)
                 }
 
-                VStack(spacing: 6) {
-                    Button("Apply Tag to Node") {
-                        if let nodeID = viewModel.selectedNodeID {
-                            viewModel.applySelectedTag(toNode: nodeID)
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-                    .disabled(viewModel.selectedNodeID == nil || viewModel.selectedTagID == nil)
-
-                    if isRenaming {
-                        HStack {
-                            TextField("New name", text: $renameText)
-                                .textFieldStyle(.roundedBorder)
-                                .onSubmit(commitRename)
-                            Button("Save", action: commitRename)
-                        }
-                    } else {
-                        Button("Rename Tag") {
-                            renameText = viewModel.tags.first(where: { $0.id == viewModel.selectedTagID })?.name ?? ""
-                            isRenaming = true
-                        }
-                        .frame(maxWidth: .infinity)
-                        .disabled(viewModel.selectedTagID == nil)
+                Button("Apply Tag to Node") {
+                    if let nodeID = viewModel.selectedNodeID {
+                        viewModel.applySelectedTag(toNode: nodeID)
                     }
                 }
+                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity)
+                .disabled(viewModel.selectedNodeID == nil || viewModel.selectedTagID == nil)
 
                 Toggle("Filter on selected tag", isOn: $viewModel.filterOnTag)
                     .font(.system(size: 12))
@@ -109,21 +107,46 @@ struct FilterSidebar: View {
         }
         .padding(14)
         .frame(width: 232)
-        .background(Color(nsColor: .underPageBackgroundColor))
+        .background(Color.appSidebarBackground)
     }
 
-    private static let dateRangeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy"
-        return formatter
-    }()
-
-    private var dateRangeFrom: String {
-        Self.dateRangeFormatter.string(from: viewModel.quickSet.range.from)
+    /// Backs the "Hide items under" field with text rather than a numeric
+    /// binding — an emptied field should mean "no minimum" (show everything),
+    /// not silently keep the last committed number.
+    private var minDurationText: Binding<String> {
+        Binding(
+            get: {
+                viewModel.minDurationMinutes == 0 ? "" : String(format: "%g", viewModel.minDurationMinutes)
+            },
+            set: { newValue in
+                viewModel.minDurationMinutes = Double(newValue) ?? 0
+            }
+        )
     }
 
-    private var dateRangeTo: String {
-        Self.dateRangeFormatter.string(from: viewModel.quickSet.range.to)
+    /// Standard macOS month-grid calendars for picking a custom range,
+    /// shown only while "Custom Range" is selected.
+    private var customRangeCalendars: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("From").font(.system(size: 10.5)).foregroundStyle(.tertiary)
+                DatePicker(
+                    "", selection: Binding(get: { viewModel.customFrom }, set: viewModel.setCustomFrom),
+                    in: ...viewModel.customTo, displayedComponents: .date
+                )
+                .labelsHidden()
+                .datePickerStyle(.graphical)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("To").font(.system(size: 10.5)).foregroundStyle(.tertiary)
+                DatePicker(
+                    "", selection: Binding(get: { viewModel.customTo }, set: viewModel.setCustomTo),
+                    in: viewModel.customFrom...Date(), displayedComponents: .date
+                )
+                .labelsHidden()
+                .datePickerStyle(.graphical)
+            }
+        }
     }
 
     private func sectionLabel(_ text: String) -> some View {
@@ -135,9 +158,18 @@ struct FilterSidebar: View {
 
     private func tagRow(_ tag: Tag) -> some View {
         let isSelected = viewModel.selectedTagID == tag.id
+        let isRenaming = renamingTagID == tag.id
         return HStack(spacing: 8) {
             RoundedRectangle(cornerRadius: 3).fill(Color(hex: tag.colorHex)).frame(width: 9, height: 9)
-            Text(tag.name).font(.system(size: 12.5))
+            if isRenaming {
+                TextField("Tag name", text: $renameText)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(isSelected ? .white : .primary)
+                    .onSubmit { commitRename(tag) }
+            } else {
+                Text(tag.name).font(.system(size: 12.5))
+            }
             Spacer()
         }
         .padding(.vertical, 5)
@@ -145,7 +177,11 @@ struct FilterSidebar: View {
         .background(isSelected ? Color.accentColor : .clear)
         .foregroundStyle(isSelected ? .white : .primary)
         .contentShape(Rectangle())
-        .onTapGesture { viewModel.selectedTagID = tag.id }
+        .onTapGesture(count: 2) {
+            renameText = tag.name
+            renamingTagID = tag.id
+        }
+        .onTapGesture(count: 1) { viewModel.selectedTagID = tag.id }
     }
 
     private func addTag() {
@@ -157,8 +193,8 @@ struct FilterSidebar: View {
         isAddingTag = false
     }
 
-    private func commitRename() {
-        viewModel.renameSelectedTag(to: renameText)
-        isRenaming = false
+    private func commitRename(_ tag: Tag) {
+        viewModel.renameTag(id: tag.id, to: renameText)
+        renamingTagID = nil
     }
 }

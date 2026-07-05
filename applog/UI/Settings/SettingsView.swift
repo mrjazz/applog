@@ -44,7 +44,7 @@ struct SettingsView: View {
         .padding(.horizontal, 28)
         .padding(.vertical, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(Color.appToolbarBackground)
     }
 
     // MARK: General

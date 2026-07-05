@@ -13,6 +13,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
     private var isPaused = false
     private var isPausedSubscription: AnyCancellable?
+    private var showInDockSubscription: AnyCancellable?
+
+    /// Window titles that should keep AppTracker in the Dock/Cmd-Tab list
+    /// while visible (FR: appear only while Statistics or Settings is open).
+    private static let dockRelevantWindowTitles: Set<String> = ["Statistics", "Settings"]
 
     /// Registered by `WindowOpenerBridge` once the Statistics window scene
     /// exists, so this AppKit-side delegate can drive SwiftUI's `openWindow`.
@@ -22,7 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "circle.fill", accessibilityDescription: "AppTracker")
+            button.image = NSImage(systemSymbolName: "hourglass.bottomhalf.fill", accessibilityDescription: "AppTracker")
             button.target = self
             button.action = #selector(statusItemClicked(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
@@ -32,7 +37,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.updatePauseState(paused)
         }
 
-        Task { await AppEnvironment.shared.bootstrap() }
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(handleWindowVisibilityChange),
+            name: NSWindow.willCloseNotification, object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(handleWindowVisibilityChange),
+            name: NSWindow.didBecomeKeyNotification, object: nil
+        )
+
+        Task {
+            await AppEnvironment.shared.bootstrap()
+            showInDockSubscription = AppEnvironment.shared.settings.$showInDock.sink { [weak self] _ in
+                self?.updateActivationPolicy()
+            }
+            updateActivationPolicy()
+        }
+    }
+
+    @objc private func handleWindowVisibilityChange(_ notification: Notification) {
+        // Deferred a tick: on willClose the window is still in NSApp.windows
+        // and still reports isVisible, so check after the close completes.
+        DispatchQueue.main.async { [weak self] in
+            self?.updateActivationPolicy()
+        }
+    }
+
+    private func updateActivationPolicy() {
+        let anyRelevantWindowVisible = NSApp.windows.contains {
+            $0.isVisible && Self.dockRelevantWindowTitles.contains($0.title)
+        }
+        let pinnedToDock = AppEnvironment.shared.settings?.showInDock ?? false
+        NSApp.setActivationPolicy(anyRelevantWindowVisible || pinnedToDock ? .regular : .accessory)
     }
 
     @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
@@ -81,7 +117,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func updatePauseState(_ paused: Bool) {
         isPaused = paused
         statusItem.button?.image = NSImage(
-            systemSymbolName: paused ? "pause.circle" : "circle.fill",
+            systemSymbolName: paused ? "hourglass" : "hourglass.bottomhalf.fill",
             accessibilityDescription: "AppTracker"
         )
     }

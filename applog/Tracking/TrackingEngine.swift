@@ -110,8 +110,11 @@ actor TrackingEngine {
         guard !excludedApps.contains(bundleID) else { return }
 
         let title = await MainActor.run { WindowTitleSampler.frontmostWindowTitle(for: app) }
+        let tabURL = HierarchyBuilder.browserBundleIDs.contains(bundleID)
+            ? await MainActor.run { BrowserTabInspector.activeTabURL(bundleID: bundleID) }
+            : nil
         let appName = app.localizedName ?? bundleID
-        let chain = HierarchyBuilder.chain(bundleID: bundleID, appName: appName, windowTitle: title)
+        let chain = HierarchyBuilder.chain(bundleID: bundleID, appName: appName, windowTitle: title, tabURL: tabURL)
 
         do {
             var parentID: Int64?

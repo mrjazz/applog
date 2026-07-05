@@ -8,6 +8,40 @@ enum TreeBuilder {
         var searchText: String = ""
         var activeTagID: Int64?
         var filterOnTag: Bool = false
+        var excludedAppBundleIDs: Set<String> = []
+        var excludedDomains: Set<String> = []
+    }
+
+    /// True for a node the user has excluded directly: an app by bundle ID,
+    /// a domain by name, or the synthetic "Away" node by its fixed name —
+    /// entered as "Away" in the same Excluded Apps list, since it has no
+    /// real bundle ID to match against.
+    static func isNodeItselfExcluded(_ node: Node, filter: Filter) -> Bool {
+        switch node.kind {
+        case .app:
+            guard let bundleID = node.bundleID else { return false }
+            return filter.excludedAppBundleIDs.contains(bundleID)
+        case .domain:
+            return filter.excludedDomains.contains(node.name.lowercased())
+        case .away:
+            return filter.excludedAppBundleIDs.contains { $0.caseInsensitiveCompare(node.name) == .orderedSame }
+        default:
+            return false
+        }
+    }
+
+    /// True if this node — or, for a session's leaf node, any of its
+    /// ancestors — is an excluded app, domain, or the Away node. Shared by
+    /// the tree builder and the daily timeline so excluded activity
+    /// disappears from both.
+    static func isExcluded(nodeID: Int64?, nodes: [Int64: Node], filter: Filter) -> Bool {
+        guard !filter.excludedAppBundleIDs.isEmpty || !filter.excludedDomains.isEmpty else { return false }
+        var current = nodeID.flatMap { nodes[$0] }
+        while let n = current {
+            if isNodeItselfExcluded(n, filter: filter) { return true }
+            current = n.parentID.flatMap { nodes[$0] }
+        }
+        return false
     }
 
     /// Builds the full tree for a date range, resolves inherited tags (FR-12/FR-13),
@@ -21,7 +55,7 @@ enum TreeBuilder {
         filter: Filter
     ) -> [TreeRow] {
         var childrenByParent: [Int64: [Node]] = [:]
-        for node in nodes.values where !node.hidden {
+        for node in nodes.values where !node.hidden && !isNodeItselfExcluded(node, filter: filter) {
             if let parentID = node.parentID {
                 childrenByParent[parentID, default: []].append(node)
             }
@@ -83,7 +117,7 @@ enum TreeBuilder {
             return row
         }
 
-        let roots = nodes.values.filter { $0.parentID == nil && !$0.hidden }
+        let roots = nodes.values.filter { $0.parentID == nil && !$0.hidden && !isNodeItselfExcluded($0, filter: filter) }
         let built = roots.map(build).compactMap(prune)
         return built
             .map { assignDepth($0, depth: 0) }

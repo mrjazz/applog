@@ -7,10 +7,13 @@ enum DateQuickSet: String, CaseIterable, Identifiable {
     case thisWeek = "This Week"
     case thisMonth = "This Month"
     case allTime = "All Time"
+    case custom = "Custom Range"
 
     var id: String { rawValue }
 
-    var range: (from: Date, to: Date) {
+    /// `nil` for `.custom` — the view model resolves that case against the
+    /// user's own from/to dates instead of a fixed preset.
+    var range: (from: Date, to: Date)? {
         let cal = Calendar.current
         let now = Date()
         switch self {
@@ -24,6 +27,8 @@ enum DateQuickSet: String, CaseIterable, Identifiable {
             return (start, now)
         case .allTime:
             return (Date(timeIntervalSince1970: 0), now)
+        case .custom:
+            return nil
         }
     }
 }
@@ -40,12 +45,39 @@ final class StatisticsViewModel: ObservableObject {
     @Published var filterOnTag = false
     @Published var minDurationMinutes: Double = 0
     @Published var searchText = ""
-    @Published var quickSet: DateQuickSet = .thisWeek
+    @Published var quickSet: DateQuickSet = .thisWeek {
+        didSet {
+            guard let range = quickSet.range else { return }
+            customFrom = range.from
+            customTo = range.to
+        }
+    }
+    @Published var customFrom: Date = DateQuickSet.thisWeek.range?.from ?? Date()
+    @Published var customTo: Date = Date()
     @Published var timelineDays: [(label: String, blocks: [TimelineBlock])] = []
     @Published var totalTrackedToday: Int = 0
 
     var maxRowSeconds: Int {
         TreeBuilder.flatten(rows).map(\.totalSeconds).max() ?? 1
+    }
+
+    var activeRange: (from: Date, to: Date) {
+        quickSet.range ?? (Calendar.current.startOfDay(for: customFrom), endOfDay(customTo))
+    }
+
+    private func endOfDay(_ date: Date) -> Date {
+        let cal = Calendar.current
+        return cal.date(byAdding: .day, value: 1, to: cal.startOfDay(for: date)) ?? date
+    }
+
+    func setCustomFrom(_ date: Date) {
+        customFrom = date
+        quickSet = .custom
+    }
+
+    func setCustomTo(_ date: Date) {
+        customTo = date
+        quickSet = .custom
     }
 
     init(store: Store, engine: TrackingEngine) {
@@ -58,14 +90,18 @@ final class StatisticsViewModel: ObservableObject {
             let nodes = try await store.allNodes()
             let allTags = try await store.allTags()
             let tagsByID = Dictionary(uniqueKeysWithValues: allTags.map { ($0.id, $0) })
-            let (from, to) = quickSet.range
+            let (from, to) = activeRange
             let ownSeconds = try await store.ownActiveSeconds(from: from, to: to)
+            let excludedApps = Set((try? await store.exclusions(kind: .app)) ?? [])
+            let excludedDomains = Set(((try? await store.exclusions(kind: .domain)) ?? []).map { $0.lowercased() })
 
             let filter = TreeBuilder.Filter(
                 minDurationSeconds: Int(minDurationMinutes * 60),
                 searchText: searchText,
                 activeTagID: selectedTagID,
-                filterOnTag: filterOnTag
+                filterOnTag: filterOnTag,
+                excludedAppBundleIDs: excludedApps,
+                excludedDomains: excludedDomains
             )
             let builtRows = TreeBuilder.buildTree(nodes: nodes, ownSeconds: ownSeconds, tags: tagsByID, filter: filter)
 
@@ -73,17 +109,19 @@ final class StatisticsViewModel: ObservableObject {
             if selectedTagID == nil { selectedTagID = allTags.first?.id }
             rows = builtRows
 
-            let (todayStart, now) = DateQuickSet.today.range
+            let (todayStart, now) = DateQuickSet.today.range!
             let todaySeconds = try await store.ownActiveSeconds(from: todayStart, to: now)
-            totalTrackedToday = todaySeconds.values.reduce(0, +)
+            totalTrackedToday = todaySeconds
+                .filter { !TreeBuilder.isExcluded(nodeID: $0.key, nodes: nodes, filter: filter) }
+                .values.reduce(0, +)
 
-            await refreshTimeline(nodes: nodes, tagsByID: tagsByID)
+            await refreshTimeline(nodes: nodes, tagsByID: tagsByID, filter: filter)
         } catch {
             print("StatisticsViewModel: refresh failed — \(error)")
         }
     }
 
-    private func refreshTimeline(nodes: [Int64: Node], tagsByID: [Int64: Tag]) async {
+    private func refreshTimeline(nodes: [Int64: Node], tagsByID: [Int64: Tag], filter: TreeBuilder.Filter) async {
         func resolvedColor(for nodeID: Int64?) -> String {
             var current = nodeID.flatMap { nodes[$0] }
             while let n = current {
@@ -101,19 +139,31 @@ final class StatisticsViewModel: ObservableObject {
         for offset in 0..<14 {
             guard let day = calendar.date(byAdding: .day, value: -offset, to: Date()) else { continue }
             let dayStart = calendar.startOfDay(for: day)
+            let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
             let sessions = (try? await store.sessions(onDay: dayStart)) ?? []
             guard !sessions.isEmpty else { continue }
-            let blocks = sessions.map { session -> TimelineBlock in
-                let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart)!
+
+            // One segment per tag actually used that day (not one per raw
+            // session — a tag used in a dozen short bursts should still be a
+            // single bar), sized by that tag's total time as a fraction of
+            // the day, e.g. 2.4h of a 24h day renders as a 10%-wide segment.
+            var secondsByColor: [String: Int] = [:]
+            for session in sessions {
+                guard !TreeBuilder.isExcluded(nodeID: session.nodeID, nodes: nodes, filter: filter) else { continue }
                 let clampedStart = max(session.startedAt, dayStart)
                 let clampedEnd = min(session.endedAt, dayEnd)
-                let daySeconds = dayEnd.timeIntervalSince(dayStart)
-                let startFraction = clampedStart.timeIntervalSince(dayStart) / daySeconds
-                let widthFraction = max(0, clampedEnd.timeIntervalSince(clampedStart) / daySeconds)
-                return TimelineBlock(
-                    startFraction: startFraction, widthFraction: widthFraction,
-                    colorHex: resolvedColor(for: session.nodeID)
-                )
+                let seconds = Int(clampedEnd.timeIntervalSince(clampedStart))
+                guard seconds > 0 else { continue }
+                secondsByColor[resolvedColor(for: session.nodeID), default: 0] += seconds
+            }
+
+            let daySeconds = dayEnd.timeIntervalSince(dayStart)
+            var cursor = 0.0
+            let blocks = secondsByColor.sorted { $0.value > $1.value }.map { colorHex, seconds -> TimelineBlock in
+                let widthFraction = Double(seconds) / daySeconds
+                let block = TimelineBlock(startFraction: cursor, widthFraction: widthFraction, colorHex: colorHex)
+                cursor += widthFraction
+                return block
             }
             result.append((dayFormatter.string(from: day), blocks))
         }
@@ -128,8 +178,8 @@ final class StatisticsViewModel: ObservableObject {
         }
     }
 
-    func renameSelectedTag(to newName: String) {
-        guard let tagID = selectedTagID, !newName.isEmpty else { return }
+    func renameTag(id tagID: Int64, to newName: String) {
+        guard !newName.isEmpty else { return }
         Task {
             try? await store.renameTag(id: tagID, to: newName)
             await refresh()

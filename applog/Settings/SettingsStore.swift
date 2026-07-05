@@ -51,7 +51,6 @@ final class SettingsStore: ObservableObject {
     func setShowInDock(_ value: Bool) {
         showInDock = value
         persist("showInDock", value ? "true" : "false")
-        NSApp.setActivationPolicy(value ? .regular : .accessory)
     }
 
     func setSampleInterval(_ seconds: Int) {

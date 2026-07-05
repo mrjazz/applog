@@ -59,6 +59,7 @@ struct StatisticsView: View {
 
     private var toolbar: some View {
         HStack(spacing: 10) {
+            pauseButton
             statusPill
 
             HStack(spacing: 4) {
@@ -70,21 +71,6 @@ struct StatisticsView: View {
 
             Spacer()
 
-            HStack(spacing: 6) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.tertiary)
-                TextField("Filter by name", text: $viewModel.searchText)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 12))
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .frame(minWidth: 160)
-            .background(Color(nsColor: .textBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 7))
-            .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(.separator))
-
             Button {
                 openWindow(id: "settings")
             } label: {
@@ -95,6 +81,16 @@ struct StatisticsView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
+        .background(Color.appToolbarBackground)
+    }
+
+    private var pauseButton: some View {
+        Button(action: onTogglePause) {
+            Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                .font(.system(size: 11))
+        }
+        .buttonStyle(.plain)
+        .help(isPaused ? "Resume tracking" : "Pause tracking")
     }
 
     private var statusPill: some View {

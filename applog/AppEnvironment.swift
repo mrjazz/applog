@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import AppKit
 import Combine
 
 /// Bootstraps the async pieces (DB open, settings load) once at launch and
@@ -40,8 +39,6 @@ final class AppEnvironment: ObservableObject {
 
             await engine.start()
             await vm.refresh()
-
-            NSApp.setActivationPolicy(settings.showInDock ? .regular : .accessory)
         } catch {
             print("AppEnvironment: bootstrap failed — \(error)")
         }

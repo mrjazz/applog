@@ -1,0 +1,747 @@
+<title>Menu Bar Icon Options — AppTracker</title>
+<style>
+  :root {
+    --bg: #EDEEF0;
+    --surface: #FFFFFF;
+    --ink: #16181B;
+    --ink-soft: #62666D;
+    --ink-faint: #93979E;
+    --line: #DCDEE2;
+    --accent: #B9862E;
+    --accent-ink: #6B4C16;
+    /* These depict real macOS menu bar chrome, not themed page UI —
+       they stay fixed regardless of the page's own light/dark theme. */
+    --strip-light-bg: #F6F6F7;
+    --strip-light-border: #D8D9DB;
+    --strip-light-ink: #1C1C1E;
+    --strip-dark-bg: #1E1E1E;
+    --strip-dark-border: #0C0C0C;
+    --strip-dark-ink: #F2F2F3;
+
+    --tag-time: #5B7290;
+    --tag-watch: #3E8E82;
+    --tag-light: #B9862E;
+    --tag-nature: #5B8A4E;
+    --tag-abstract: #7D6B9E;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131417;
+      --surface: #1B1D21;
+      --ink: #EDEEF0;
+      --ink-soft: #9BA0A8;
+      --ink-faint: #6B6F76;
+      --line: #2A2C31;
+      --accent: #D9A24C;
+      --accent-ink: #F3D9A8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #131417;
+    --surface: #1B1D21;
+    --ink: #EDEEF0;
+    --ink-soft: #9BA0A8;
+    --ink-faint: #6B6F76;
+    --line: #2A2C31;
+    --accent: #D9A24C;
+    --accent-ink: #F3D9A8;
+  }
+  :root[data-theme="light"] {
+    --bg: #EDEEF0;
+    --surface: #FFFFFF;
+    --ink: #16181B;
+    --ink-soft: #62666D;
+    --ink-faint: #93979E;
+    --line: #DCDEE2;
+    --accent: #B9862E;
+    --accent-ink: #6B4C16;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); }
+  body {
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 64px 28px 96px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  .page { max-width: 1120px; margin: 0 auto; }
+
+  header {
+    max-width: 640px;
+    margin: 0 0 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+  }
+  h1 {
+    font-family: ui-serif, "New York", Georgia, serif;
+    font-size: 34px;
+    font-weight: 500;
+    line-height: 1.15;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  header p {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 60ch;
+  }
+
+  nav.families {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  nav.families a {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+  }
+  nav.families a:hover, nav.families a:focus-visible {
+    color: var(--ink);
+    border-color: var(--ink-faint);
+    outline: none;
+  }
+  nav.families a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  section.family { margin-bottom: 52px; }
+  section.family:last-of-type { margin-bottom: 0; }
+
+  .family-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .family-head .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .family-head h2 {
+    font-family: ui-serif, "New York", Georgia, serif;
+    font-size: 19px;
+    font-weight: 500;
+    margin: 0;
+  }
+  .family-head .count {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11.5px;
+    color: var(--ink-faint);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
+    gap: 18px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .strips { display: flex; flex-direction: column; }
+  .strip {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 0 10px;
+  }
+  .strip.light {
+    background: var(--strip-light-bg);
+    border-bottom: 1px solid var(--strip-light-border);
+    color: var(--strip-light-ink);
+  }
+  .strip.dark {
+    background: var(--strip-dark-bg);
+    border-bottom: 1px solid var(--strip-dark-border);
+    color: var(--strip-dark-ink);
+  }
+  .strip .sys-glyph { opacity: 0.38; flex-shrink: 0; }
+  .strip .candidate { flex-shrink: 0; }
+  .strip .candidate svg { display: block; width: 17px; height: 17px; }
+
+  .label {
+    padding: 12px 13px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .label .name {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .label .rationale {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-faint);
+    max-width: 60ch;
+  }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">AppTracker · Menu Bar Icon Review</div>
+    <h1>Twenty ways to sit in the menu bar</h1>
+    <p>
+      AppTracker lives as a single glyph at 17pt, template-rendered so macOS can tint it for
+      light and dark menu bars. Each candidate below is mounted at true size in both, next to
+      the faint system glyphs it will actually sit beside, so shape and weight can be judged
+      the way they'll really be seen.
+    </p>
+    <nav class="families">
+      <a href="#time">Time</a>
+      <a href="#watching">Watching</a>
+      <a href="#light">Light</a>
+      <a href="#nature">Nature</a>
+      <a href="#abstract">Abstract</a>
+    </nav>
+  </header>
+
+  <!-- ============ TIME ============ -->
+  <section class="family" id="time">
+    <div class="family-head">
+      <span class="dot" style="background:var(--tag-time)"></span>
+      <h2>Time</h2>
+      <span class="count">05 candidates</span>
+    </div>
+    <div class="grid">
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3h12M6 21h12"/><path d="M6.5 3 12 12 6.5 21M17.5 3 12 12 17.5 21" fill="none"/>
+              <path d="M6.5 21 12 14 17.5 21Z" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3h12M6 21h12"/><path d="M6.5 3 12 12 6.5 21M17.5 3 12 12 17.5 21" fill="none"/>
+              <path d="M6.5 21 12 14 17.5 21Z" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">HOURGLASS — SETTLED</div>
+          <div class="rationale">Sand at rest in the lower bulb. Reads as "tracking," calm rather than urgent.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3h12M6 21h12"/><path d="M6.5 3 12 12 6.5 21M17.5 3 12 12 17.5 21"/>
+              <path d="M7.4 4.6 16.6 4.6 12 10.4Z" fill="currentColor" stroke="none"/>
+              <circle cx="12" cy="12.6" r="0.9" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3h12M6 21h12"/><path d="M6.5 3 12 12 6.5 21M17.5 3 12 12 17.5 21"/>
+              <path d="M7.4 4.6 16.6 4.6 12 10.4Z" fill="currentColor" stroke="none"/>
+              <circle cx="12" cy="12.6" r="0.9" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">HOURGLASS — MID-FLOW</div>
+          <div class="rationale">A grain caught mid-fall. More "live," but the loose dot can smear at 17pt.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.8"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">CLOCK — TEN PAST TEN</div>
+          <div class="rationale">The most literal read. Safe, but visually close to the system clock widget.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l2.6 1.5M9.5 3h5"/><path d="M16.5 4.5 18 6"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="13" r="8"/><path d="M12 13V9M12 13l2.6 1.5M9.5 3h5"/><path d="M16.5 4.5 18 6"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">STOPWATCH</div>
+          <div class="rationale">Crown at top-right breaks symmetry — reads as "measuring," a fraction more active than a clock.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19h16"/><path d="M9 19 12 6 15 19Z"/><path d="M12 6v13" stroke-dasharray="1.5 2"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19h16"/><path d="M9 19 12 6 15 19Z"/><path d="M12 6v13" stroke-dasharray="1.5 2"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">SUNDIAL</div>
+          <div class="rationale">Time as a passive shadow rather than a mechanism — quietest of the five, but unfamiliar at a glance.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ WATCHING ============ -->
+  <section class="family" id="watching">
+    <div class="family-head">
+      <span class="dot" style="background:var(--tag-watch)"></span>
+      <h2>Watching</h2>
+      <span class="count">05 candidates</span>
+    </div>
+    <div class="grid">
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 8 9 21h6l1-13"/><path d="M8.5 7h7L14 3h-4Z"/><path d="M5.5 5 8 7M18.5 5 16 7"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 8 9 21h6l1-13"/><path d="M8.5 7h7L14 3h-4Z"/><path d="M5.5 5 8 7M18.5 5 16 7"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">LIGHTHOUSE</div>
+          <div class="rationale">Watches quietly, signals when it matters. The most on-brand metaphor for passive tracking.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12C6 6 18 6 22 12 18 18 6 18 2 12Z"/><circle cx="12" cy="12" r="3"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12C6 6 18 6 22 12 18 18 6 18 2 12Z"/><circle cx="12" cy="12" r="3"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">EYE</div>
+          <div class="rationale">Unambiguous "this is watching you" — accurate to what the app does, maybe too on the nose.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><path d="M12 12 18 8"/><circle cx="15" cy="15" r="1" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><path d="M12 12 18 8"/><circle cx="15" cy="15" r="1" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">RADAR SWEEP</div>
+          <div class="rationale">Implies scanning/detection rather than recording. Slightly technical, matches a utility app.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4.5" y="10" width="6" height="8" rx="2.4"/><rect x="13.5" y="10" width="6" height="8" rx="2.4"/>
+              <path d="M8 9 9 9 9 12"/><path d="M16 9 15 9 15 12"/><rect x="8.5" y="8" width="7" height="3" rx="1"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4.5" y="10" width="6" height="8" rx="2.4"/><rect x="13.5" y="10" width="6" height="8" rx="2.4"/>
+              <path d="M8 9 9 9 9 12"/><path d="M16 9 15 9 15 12"/><rect x="8.5" y="8" width="7" height="3" rx="1"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">BINOCULARS</div>
+          <div class="rationale">Reads well large, but the twin barrels fight for pixels at 17pt and blur together.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="17" r="1.4" fill="currentColor" stroke="none"/>
+              <path d="M8.5 14.5A5 5 0 0 1 15.5 14.5"/><path d="M6.3 12.3A8 8 0 0 1 17.7 12.3"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="17" r="1.4" fill="currentColor" stroke="none"/>
+              <path d="M8.5 14.5A5 5 0 0 1 15.5 14.5"/><path d="M6.3 12.3A8 8 0 0 1 17.7 12.3"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">BEACON SIGNAL</div>
+          <div class="rationale">Borrowed from signal-strength language — "broadcasting quietly." Reads as status, not data.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ LIGHT ============ -->
+  <section class="family" id="light">
+    <div class="family-head">
+      <span class="dot" style="background:var(--tag-light)"></span>
+      <h2>Light</h2>
+      <span class="count">05 candidates</span>
+    </div>
+    <div class="grid">
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21h4M11 21v-5"/><path d="M11 16 5 9"/><path d="M2.5 9h8L9 4.5H4Z"/><circle cx="6.3" cy="10.6" r="1" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21h4M11 21v-5"/><path d="M11 16 5 9"/><path d="M2.5 9h8L9 4.5H4Z"/><circle cx="6.3" cy="10.6" r="1" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">DESK LAMP</div>
+          <div class="rationale">Focus/work-session framing rather than time. The angled arm is the app's most distinct silhouette.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="10" r="6.2"/><path d="M9.8 10 12 12.2 14.2 10"/>
+              <path d="M10.3 16h3.4M10.7 18h2.6"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="10" r="6.2"/><path d="M9.8 10 12 12.2 14.2 10"/>
+              <path d="M10.3 16h3.4M10.7 18h2.6"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">LIGHT BULB</div>
+          <div class="rationale">Instantly familiar as "idea/on," but heavily used elsewhere — least distinctive of this set.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="10" y="10" width="4" height="10"/><path d="M10 13.5h4"/>
+              <path d="M12 3c1.6 2.2 1.6 3.8 0 5-1.6-1.2-1.6-2.8 0-5Z" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="10" y="10" width="4" height="10"/><path d="M10 13.5h4"/>
+              <path d="M12 3c1.6 2.2 1.6 3.8 0 5-1.6-1.2-1.6-2.8 0-5Z" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">CANDLE</div>
+          <div class="rationale">A slower, ambient kind of time passing. Quiet and warm, if a little precious for a dev tool.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3c2.6 3.4 2.6 6-0.2 8-1-1.6-0.9-2.6 0.2-4-1.8 0.7-2.6 2.4-1.6 4.4-3-1.4-3-5.2 1.6-8.4Z" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3c2.6 3.4 2.6 6-0.2 8-1-1.6-0.9-2.6 0.2-4-1.8 0.7-2.6 2.4-1.6 4.4-3-1.4-3-5.2 1.6-8.4Z" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">FLAME</div>
+          <div class="rationale">"Active session" energy — closer to a streak or a build indicator than a passive tracker.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3 5.5 19a7 3 0 0 0 13 0Z"/><circle cx="12" cy="3" r="1" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3 5.5 19a7 3 0 0 0 13 0Z"/><circle cx="12" cy="3" r="1" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">SPOTLIGHT CONE</div>
+          <div class="rationale">"Shining a light on where your time goes" — the widening cone reads as attention, not measurement.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ NATURE ============ -->
+  <section class="family" id="nature">
+    <div class="family-head">
+      <span class="dot" style="background:var(--tag-nature)"></span>
+      <h2>Nature</h2>
+      <span class="count">03 candidates</span>
+    </div>
+    <div class="grid">
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3c6 2 7 9 0 18-7-9-6-16 0-18Z"/><path d="M12 5v14"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3c6 2 7 9 0 18-7-9-6-16 0-18Z"/><path d="M12 5v14"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">LEAF</div>
+          <div class="rationale">Growth-over-time framing — gentle, but has no obvious link to "menu bar utility" without context.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 4A8 8 0 1 0 15 20 6 6 0 0 1 15 4Z"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 4A8 8 0 1 0 15 20 6 6 0 0 1 15 4Z"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">CRESCENT MOON</div>
+          <div class="rationale">Doubles as the natural glyph for the app's own "Away/idle" state — same icon, two jobs.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="8.5" cy="18" rx="2.1" ry="3" transform="rotate(-18 8.5 18)"/>
+              <ellipse cx="15.5" cy="9.5" rx="2.1" ry="3" transform="rotate(-18 15.5 9.5)"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="8.5" cy="18" rx="2.1" ry="3" transform="rotate(-18 8.5 18)"/>
+              <ellipse cx="15.5" cy="9.5" rx="2.1" ry="3" transform="rotate(-18 15.5 9.5)"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">FOOTPRINTS</div>
+          <div class="rationale">"Where you've been today" — a nice narrative fit, but reads as ambiguous dots at 17pt.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ ABSTRACT ============ -->
+  <section class="family" id="abstract">
+    <div class="family-head">
+      <span class="dot" style="background:var(--tag-abstract)"></span>
+      <h2>Abstract</h2>
+      <span class="count">02 candidates</span>
+    </div>
+    <div class="grid">
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="7" width="18" height="10" rx="3"/><path d="M5.5 12h2.5l1.5-4 2.5 8 1.5-4H18.5"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="7" width="18" height="10" rx="3"/><path d="M5.5 12h2.5l1.5-4 2.5 8 1.5-4H18.5"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">PULSE LINE</div>
+          <div class="rationale">Borrowed from health-monitor language — "activity is alive." Busiest shape of the set at small size.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="strips">
+          <div class="strip light">
+            <svg class="sys-glyph" viewBox="0 0 16 12" width="16" height="12"><path d="M1 5 Q8 -1 15 5" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8" cy="9" r="1" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.4"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+          <div class="strip dark">
+            <svg class="sys-glyph" viewBox="0 0 16 10" width="16" height="10"><rect x="1" y="2" width="12" height="6" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="13.5" y="4" width="1.5" height="2" fill="currentColor"/></svg>
+            <div class="candidate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.4"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+            </svg></div>
+          </div>
+        </div>
+        <div class="label">
+          <div class="name">TARGET</div>
+          <div class="rationale">Perfectly symmetric and legible even at tiny sizes, but says "goal," not "time" — a slight meaning mismatch.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    Rendered as template glyphs (single-color, <code>currentColor</code>) so each behaves like a real
+    macOS menu bar icon — automatically dark-on-light and light-on-dark. Sizing shown at 17pt, the
+    actual render size for a 22pt-tall menu bar.
+  </footer>
+
+</div>
