@@ -20,7 +20,35 @@ nonisolated enum HierarchyBuilder {
         "com.microsoft.edgemac",
     ]
 
+    /// VS Code's window title puts the open file first, the project/folder
+    /// last: "file.ext - project".
+    private static let vscodeBundleIDs: Set<String> = [
+        "com.microsoft.VSCode",
+        "com.microsoft.VSCodeInsiders",
+    ]
+
+    /// JetBrains IDEA-platform IDEs (IntelliJ IDEA, Android Studio, WebStorm,
+    /// PyCharm, etc.) put the project first, the open file/tab last:
+    /// "project – file.ext".
+    private static let jetBrainsBundleIDs: Set<String> = [
+        "com.jetbrains.intellij", "com.jetbrains.intellij.ce",
+        "com.jetbrains.WebStorm", "com.jetbrains.PhpStorm",
+        "com.jetbrains.pycharm", "com.jetbrains.pycharm.ce",
+        "com.jetbrains.CLion", "com.jetbrains.rubymine",
+        "com.jetbrains.goland", "com.jetbrains.datagrip",
+        "com.jetbrains.rider",
+        "com.google.android.studio",
+    ]
+
     private static let delimiters = [" - ", " | ", " : ", " > ", "\\"]
+
+    /// Title separators IDEs use between project and file — includes the en
+    /// and em dashes JetBrains IDEs favor over a plain hyphen.
+    private static let ideDelimiters = [" – ", " — ", " - "]
+
+    private static let appNameSuffixes: Set<String> = [
+        "Visual Studio Code", "Android Studio",
+    ]
 
     /// Matches a plain domain (needs a letter-based TLD), an IPv4 address,
     /// or "localhost" — each optionally followed by :port, since local/dev
@@ -39,12 +67,42 @@ nonisolated enum HierarchyBuilder {
             let domain = tabURL.flatMap(extractHost) ?? extractDomain(from: title) ?? "Unknown"
             levels.append(HierarchyLevel(kind: .domain, name: domain))
             levels.append(HierarchyLevel(kind: .pageTitle, name: title))
+        } else if vscodeBundleIDs.contains(bundleID) {
+            let (project, tab) = splitProjectAndTab(title, projectFirst: false)
+            levels.append(HierarchyLevel(kind: .project, name: project))
+            levels.append(HierarchyLevel(kind: .tab, name: tab))
+        } else if jetBrainsBundleIDs.contains(bundleID) {
+            let (project, tab) = splitProjectAndTab(title, projectFirst: true)
+            levels.append(HierarchyLevel(kind: .project, name: project))
+            levels.append(HierarchyLevel(kind: .tab, name: tab))
         } else {
             for segment in splitOnDelimiters(title) {
                 levels.append(HierarchyLevel(kind: .titleSegment, name: segment))
             }
         }
         return levels
+    }
+
+    /// Splits an IDE window title into (project, tab). `projectFirst`
+    /// reflects that JetBrains IDEs order "project – file" while VS Code
+    /// orders "file - project"; a trailing app-name segment (VS Code appends
+    /// "Visual Studio Code" when unfocused) is dropped either way.
+    private static func splitProjectAndTab(_ title: String, projectFirst: Bool) -> (project: String, tab: String) {
+        var parts = [title]
+        for delimiter in ideDelimiters {
+            parts = parts.flatMap { $0.components(separatedBy: delimiter) }
+        }
+        parts = parts.map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        if let last = parts.last, appNameSuffixes.contains(last), parts.count > 1 {
+            parts.removeLast()
+        }
+
+        guard parts.count > 1 else {
+            return (project: "Unknown", tab: parts.first ?? title)
+        }
+        return projectFirst
+            ? (project: parts.first!, tab: parts.last!)
+            : (project: parts.last!, tab: parts.first!)
     }
 
     /// Parses the real domain out of an actual tab URL (reliable) rather

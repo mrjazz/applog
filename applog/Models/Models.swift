@@ -6,6 +6,8 @@ enum NodeKind: String, Codable {
     case domain
     case pageTitle = "page-title"
     case away
+    case project
+    case tab
 }
 
 struct Node: Identifiable, Hashable {
