@@ -5,14 +5,20 @@ import Combine
 enum DateQuickSet: String, CaseIterable, Identifiable {
     case today = "Today"
     case thisWeek = "This Week"
+    case lastWeek = "Last Week"
     case thisMonth = "This Month"
+    case lastMonth = "Last Month"
+    case thisYear = "This Year"
     case allTime = "All Time"
     case custom = "Custom Range"
 
     var id: String { rawValue }
 
     /// `nil` for `.custom` — the view model resolves that case against the
-    /// user's own from/to dates instead of a fixed preset.
+    /// user's own from/to dates instead of a fixed preset. Bounds are whole
+    /// calendar days since `Store.ownActiveSeconds` compares day-string
+    /// buckets inclusively (see `StatisticsViewModel.activeRange`) — `to`
+    /// just needs to fall on the last intended day, not be an exact instant.
     var range: (from: Date, to: Date)? {
         let cal = Calendar.current
         let now = Date()
@@ -22,8 +28,21 @@ enum DateQuickSet: String, CaseIterable, Identifiable {
         case .thisWeek:
             let start = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)) ?? now
             return (start, now)
+        case .lastWeek:
+            let thisWeekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)) ?? now
+            let start = cal.date(byAdding: .day, value: -7, to: thisWeekStart) ?? thisWeekStart
+            let end = cal.date(byAdding: .day, value: -1, to: thisWeekStart) ?? thisWeekStart
+            return (start, end)
         case .thisMonth:
             let start = cal.date(from: cal.dateComponents([.year, .month], from: now)) ?? now
+            return (start, now)
+        case .lastMonth:
+            let thisMonthStart = cal.date(from: cal.dateComponents([.year, .month], from: now)) ?? now
+            let start = cal.date(byAdding: .month, value: -1, to: thisMonthStart) ?? thisMonthStart
+            let end = cal.date(byAdding: .day, value: -1, to: thisMonthStart) ?? thisMonthStart
+            return (start, end)
+        case .thisYear:
+            let start = cal.date(from: cal.dateComponents([.year], from: now)) ?? now
             return (start, now)
         case .allTime:
             return (Date(timeIntervalSince1970: 0), now)
@@ -58,7 +77,7 @@ final class StatisticsViewModel: ObservableObject {
     /// calendar decades back the first time Custom Range is picked.
     @Published var customFrom: Date = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
     @Published var customTo: Date = Date()
-    @Published var timelineDays: [(label: String, blocks: [TimelineBlock])] = []
+    @Published var timelineDays: [(label: String, totalSeconds: Int, blocks: [TimelineBlock])] = []
     @Published var totalTrackedToday: Int = 0
     /// Node IDs the user has expanded. Absence means collapsed — nodes
     /// default closed until opened.
@@ -150,27 +169,29 @@ final class StatisticsViewModel: ObservableObject {
         let dayFormatter = DateFormatter()
         dayFormatter.dateFormat = "MMM d"
 
-        var result: [(String, [TimelineBlock])] = []
+        var result: [(String, Int, [TimelineBlock])] = []
         for offset in 0..<14 {
             guard let day = calendar.date(byAdding: .day, value: -offset, to: Date()) else { continue }
             let dayStart = calendar.startOfDay(for: day)
             let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
-            let sessions = (try? await store.sessions(onDay: dayStart)) ?? []
-            guard !sessions.isEmpty else { continue }
+            // Same source as the toolbar total and the tree (usage_bucket,
+            // via ownActiveSeconds) rather than the `session` table: a
+            // session only gets written once it closes, so the still-open
+            // "current" session would be missing from today's total if we
+            // aggregated from sessions(onDay:) instead, as this used to.
+            let nodeSeconds = (try? await store.ownActiveSeconds(from: dayStart, to: dayStart)) ?? [:]
+            guard !nodeSeconds.isEmpty else { continue }
 
-            // One segment per tag actually used that day (not one per raw
-            // session — a tag used in a dozen short bursts should still be a
-            // single bar), sized by that tag's total time as a fraction of
-            // the day, e.g. 2.4h of a 24h day renders as a 10%-wide segment.
+            // One segment per tag actually used that day (not one per node
+            // — a tag used across a dozen nodes should still be a single
+            // bar), sized by that tag's total time as a fraction of the
+            // day, e.g. 2.4h of a 24h day renders as a 10%-wide segment.
             var secondsByColor: [String: Int] = [:]
-            for session in sessions {
-                guard !TreeBuilder.isExcluded(nodeID: session.nodeID, nodes: nodes, filter: filter) else { continue }
-                let clampedStart = max(session.startedAt, dayStart)
-                let clampedEnd = min(session.endedAt, dayEnd)
-                let seconds = Int(clampedEnd.timeIntervalSince(clampedStart))
-                guard seconds > 0 else { continue }
-                secondsByColor[resolvedColor(for: session.nodeID), default: 0] += seconds
+            for (nodeID, seconds) in nodeSeconds {
+                guard seconds > 0, !TreeBuilder.isExcluded(nodeID: nodeID, nodes: nodes, filter: filter) else { continue }
+                secondsByColor[resolvedColor(for: nodeID), default: 0] += seconds
             }
+            guard !secondsByColor.isEmpty else { continue }
 
             let daySeconds = dayEnd.timeIntervalSince(dayStart)
             var cursor = 0.0
@@ -180,7 +201,8 @@ final class StatisticsViewModel: ObservableObject {
                 cursor += widthFraction
                 return block
             }
-            result.append((dayFormatter.string(from: day), blocks))
+            let totalSeconds = secondsByColor.values.reduce(0, +)
+            result.append((dayFormatter.string(from: day), totalSeconds, blocks))
         }
         timelineDays = result
     }

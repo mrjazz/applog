@@ -22,8 +22,12 @@ nonisolated enum HierarchyBuilder {
 
     private static let delimiters = [" - ", " | ", " : ", " > ", "\\"]
 
+    /// Matches a plain domain (needs a letter-based TLD), an IPv4 address,
+    /// or "localhost" — each optionally followed by :port, since local/dev
+    /// URLs (routers, self-hosted services, `localhost:3000`) are common
+    /// enough that the letters-only pattern alone left them as "Unknown".
     private static let hostnamePattern = try! NSRegularExpression(
-        pattern: #"([a-zA-Z0-9][a-zA-Z0-9-]*\.)+[a-zA-Z]{2,}"#
+        pattern: #"(?:(?:\d{1,3}\.){3}\d{1,3}|localhost|(?:[a-zA-Z0-9][a-zA-Z0-9-]*\.)+[a-zA-Z]{2,})(?::\d+)?"#
     )
 
     static func chain(bundleID: String, appName: String, windowTitle: String?, tabURL: String? = nil) -> [HierarchyLevel] {
@@ -46,9 +50,14 @@ nonisolated enum HierarchyBuilder {
     /// Parses the real domain out of an actual tab URL (reliable) rather
     /// than guessing from the page title (`extractDomain`, kept only as a
     /// fallback for browsers Apple Events can't query, e.g. Firefox).
+    /// Keeps the port when present — `URL.host` alone would collapse
+    /// distinct local services like `192.168.1.1:8080` and `:9090` into a
+    /// single domain node.
     private static func extractHost(from urlString: String) -> String? {
-        guard let host = URL(string: urlString)?.host else { return nil }
-        return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+        guard let url = URL(string: urlString), let host = url.host else { return nil }
+        let trimmedHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+        guard let port = url.port else { return trimmedHost }
+        return "\(trimmedHost):\(port)"
     }
 
     private static func splitOnDelimiters(_ title: String) -> [String] {

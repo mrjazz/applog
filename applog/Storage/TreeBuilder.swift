@@ -109,6 +109,10 @@ enum TreeBuilder {
         }
 
         func prune(_ row: TreeRow) -> TreeRow? {
+            // Duration displays as whole minutes (DurationFormat.short), so
+            // anything under 60 seconds would render as a confusing "0m" —
+            // hide it regardless of the user's own minDuration setting.
+            guard row.totalSeconds >= 60 else { return nil }
             guard row.totalSeconds >= filter.minDurationSeconds else { return nil }
             guard matchesSearch(row) else { return nil }
             guard matchesTagFilter(row) else { return nil }

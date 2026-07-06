@@ -3,7 +3,7 @@ import SwiftUI
 /// One row per day, each a 24-hour strip colored by resolved tag (FR-19b).
 /// Independent of the tree's filters — always shows full days.
 struct TimelinePanel: View {
-    let days: [(label: String, blocks: [TimelineBlock])]
+    let days: [(label: String, totalSeconds: Int, blocks: [TimelineBlock])]
     let tags: [Tag]
 
     /// ScrollView is greedy along its scroll axis regardless of any frame
@@ -33,6 +33,11 @@ struct TimelinePanel: View {
                                 .frame(width: 34, alignment: .trailing)
                             DayTrack(blocks: day.blocks)
                                 .frame(height: 11)
+                            Text(DurationFormat.short(day.totalSeconds))
+                                .font(.system(size: 10))
+                                .foregroundStyle(.tertiary)
+                                .monospacedDigit()
+                                .frame(width: 38, alignment: .trailing)
                         }
                     }
                 }
