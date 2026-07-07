@@ -1,10 +1,10 @@
-# AppTracker — Functional Requirements Specification
+# Applog — Functional Requirements Specification
 
 Source concept: [ProcrastiTracker](http://strlen.com/procrastitracker) (Windows). This document adapts that concept into a native macOS application, replacing Windows-specific mechanisms (system tray, Win32 hooks, custom binary database) with macOS equivalents (menu bar, Accessibility API, SQLite).
 
 ## 1. Purpose
 
-AppTracker automatically monitors which applications, documents, and websites the user is actively using, and for how long, without requiring manual timers. It lets the user analyze their own usage patterns after the fact, tag time for billing/project purposes, and export reports — all from a lightweight menu bar app.
+Applog automatically monitors which applications, documents, and websites the user is actively using, and for how long, without requiring manual timers. It lets the user analyze their own usage patterns after the fact, tag time for billing/project purposes, and export reports — all from a lightweight menu bar app.
 
 ## 2. Core Tracking Behavior
 
@@ -25,7 +25,7 @@ The guiding rule: **any distinct "thing" a process shows the user — a tab, a d
 - FR-4: For known web browsers (Safari, Chrome, Firefox, Arc, Edge), the app builds a **fixed three-level hierarchy** instead of generic delimiter parsing, since a domain-level grouping is more useful than raw title parsing would produce:
   1. **Browser** (root) — e.g. Safari
   2. **Domain** — e.g. `github.com`
-  3. **Page title** — the exact title of the active tab, e.g. "mrjazz/apptracker — Pull Request #42"
+  3. **Page title** — the exact title of the active tab, e.g. "mrjazz/Applog — Pull Request #42"
 
   Domain and page title are read via the Accessibility API and, where available, Safari/Chrome scripting bridges, rather than parsed from the title string. Each of the three levels can independently be tagged.
 - FR-4a: Because sampling only observes the frontmost window/tab at each tick, an app with several tabs/documents open simultaneously builds up its full set of child nodes gradually, as the user switches between them — no enumeration of background/inactive tabs is required or attempted.
@@ -73,7 +73,7 @@ The guiding rule: **any distinct "thing" a process shows the user — a tab, a d
 ## 6. Data Management
 
 ### 6.1 Storage
-- FR-23: All tracked data is stored locally in a SQLite database under `~/Library/Application Support/AppTracker/`. No data leaves the device.
+- FR-23: All tracked data is stored locally in a SQLite database under `~/Library/Application Support/Applog/`. No data leaves the device.
 - FR-24: The database auto-saves/checkpoints on a configurable interval (default 10 minutes) and on graceful quit.
 - FR-25: The app keeps rolling backups (e.g., last N daily snapshots) to recover from corruption; on launch, if the primary database is unreadable, the app offers to restore from the most recent backup.
 
@@ -93,7 +93,7 @@ Export lives in the **Export** section of Settings (FR-33), not in the Statistic
 
 - FR-30: **HTML export**: generates a self-contained, readable HTML report of the currently filtered statistics tree (respects seconds/tag/date/search filters), suitable for sharing.
 - FR-31: **CSV/JSON export**: exports the filtered tree as structured data for use in spreadsheets or other tools.
-- FR-32: **Database export**: exports a filtered subset of the raw database to a file that can later be merged into another AppTracker database; a companion **Merge** action combines an exported file into the current database.
+- FR-32: **Database export**: exports a filtered subset of the raw database to a file that can later be merged into another Applog database; a companion **Merge** action combines an exported file into the current database.
 
 ## 8. Settings
 

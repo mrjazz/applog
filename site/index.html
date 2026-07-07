@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Applog — Automatic Time Tracking That Never Leaves Your Mac</title>
+  <meta name="description" content="Applog tracks every app, tab, and document automatically in your macOS menu bar. No timers, no cloud, no idle-nag popups. Your data stays in a local SQLite file, always." />
+  <link rel="icon" type="image/png" href="imgs/applog-logo.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+/* ── Reset & Base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-heading: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+  --black: #000000;
+  --white: #ffffff;
+  --near-black: #0D0F14;
+  --dark-gray: #504F53;
+  --mid-gray: #808080;
+  --light-gray-text: #666666;
+  --border-gray: #E0E0E0;
+  --light-bg: #F5F5F7;
+  --pale-bg: #F9F9F9;
+
+  --nav-h: 72px;
+  --container: 1440px;
+  --px: clamp(20px, 4vw, 60px);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-mono);
+  background: var(--white);
+  color: var(--black);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; border: none; background: none; cursor: pointer; }
+ul { list-style: none; }
+img, svg { display: block; max-width: 100%; }
+
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding-left: var(--px);
+  padding-right: var(--px);
+}
+
+/* ── Typography ───────────────────────────────────────────────────────────── */
+.h1 { font-family: var(--font-heading); font-weight: 500; font-size: clamp(32px, 5vw, 64px); line-height: 1.1; letter-spacing: -0.02em; }
+.h2 { font-family: var(--font-heading); font-weight: 500; font-size: clamp(26px, 3.5vw, 50px); line-height: 1.2; letter-spacing: -0.015em; }
+.h3 { font-family: var(--font-heading); font-weight: 500; font-size: clamp(20px, 2.5vw, 32px); line-height: 1.3; }
+.h4 { font-family: var(--font-heading); font-weight: 500; font-size: clamp(18px, 2vw, 24px); line-height: 1.3; }
+.mono { font-family: var(--font-mono); }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 16px 28px;
+  border: 1.5px solid;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+  white-space: nowrap;
+}
+.btn-dark { background: transparent; color: var(--black); border-color: var(--black); }
+.btn-dark:hover { background: var(--black); color: var(--white); }
+.btn-on-dark { background: transparent; color: var(--white); border-color: var(--white); }
+.btn-on-dark:hover { background: var(--white); color: var(--black); }
+.btn-fill-dark { background: var(--black); color: var(--white); border-color: var(--black); }
+.btn-fill-dark:hover { background: transparent; color: var(--black); }
+.btn-full { width: 100%; text-align: center; }
+.btn-hero { font-size: 15px; padding: 20px 44px; }
+
+/* ── NAV ──────────────────────────────────────────────────────────────────── */
+#nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 9999;
+  height: var(--nav-h);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+#nav.scrolled { background: var(--white); box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
+.nav-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+.nav-logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-heading); font-weight: 600; font-size: 17px; color: var(--white); transition: color 0.3s; }
+#nav.scrolled .nav-logo { color: var(--black); }
+.nav-logo-mark { width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0; display: block; }
+.nav-links { display: flex; align-items: center; gap: 40px; }
+.nav-link { font-family: var(--font-mono); font-size: 14px; color: var(--black); opacity: 0.8; transition: opacity 0.2s; }
+#nav:not(.scrolled) .nav-link { color: var(--white); }
+.nav-link:hover { opacity: 1; }
+.hamburger { display: none; flex-direction: column; gap: 5px; padding: 8px; cursor: pointer; }
+.hamburger span { display: block; width: 24px; height: 2px; background: var(--white); transition: all 0.3s; }
+#nav.scrolled .hamburger span { background: var(--black); }
+
+#mobile-menu {
+  display: none;
+  position: fixed;
+  inset: 0;
+  top: var(--nav-h);
+  background: var(--white);
+  z-index: 9998;
+  padding: 40px var(--px);
+  flex-direction: column;
+  gap: 32px;
+}
+#mobile-menu.open { display: flex; }
+.mobile-nav-link { font-family: var(--font-heading); font-size: 22px; color: var(--black); font-weight: 500; }
+.mobile-cta { margin-top: auto; }
+
+/* ── HERO ─────────────────────────────────────────────────────────────────── */
+#hero {
+  background: var(--near-black);
+  padding-top: var(--nav-h);
+}
+.hero-inner { width: 100%; padding-top: 100px; padding-bottom: 0; }
+.hero-content { max-width: 760px; margin: 0 auto; text-align: center; }
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 24px;
+}
+.hero-h1 { color: var(--white); margin-bottom: 28px; }
+.hero-h1 .muted { color: rgba(255,255,255,0.65); }
+.hero-sub {
+  font-size: 17px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.65);
+  max-width: 620px;
+  margin: 0 auto 40px;
+}
+.hero-ctas { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+.hero-microcopy {
+  font-size: 13px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.45);
+  max-width: 460px;
+  margin: 0 auto 64px;
+}
+.hero-shot-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--px);
+  transform: translateY(60px);
+}
+.hero-shot {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px 10px 0 0;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.55);
+}
+.hero-shot img { width: 100%; display: block; }
+
+/* ── STATS BAR ────────────────────────────────────────────────────────────── */
+#stats { background: var(--light-bg); padding: 60px 0; padding-top: calc(60px + 60px); }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; }
+.stat-item { text-align: center; }
+.stat-value { font-family: var(--font-heading); font-weight: 500; font-size: clamp(22px, 2.6vw, 34px); line-height: 1.1; margin-bottom: 10px; }
+.stat-label { font-size: 13px; line-height: 1.6; color: var(--light-gray-text); }
+
+/* ── PROBLEM ──────────────────────────────────────────────────────────────── */
+#problem { background: var(--white); padding: 100px 0; }
+.problem-heading { margin-bottom: 56px; max-width: 640px; }
+.problem-heading .sub { font-size: 16px; line-height: 1.6; color: var(--light-gray-text); margin-top: 14px; }
+.cards-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border-gray); }
+.card-cell { background: var(--white); padding: 40px; }
+.card-title { font-family: var(--font-heading); font-weight: 500; font-size: 20px; line-height: 1.3; margin-bottom: 14px; }
+.card-body { font-size: 14px; line-height: 1.7; color: var(--dark-gray); }
+.card-tag { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid-gray); margin-top: 16px; }
+
+/* ── HOW IT WORKS ─────────────────────────────────────────────────────────── */
+#process { background: var(--light-bg); padding: 100px 0; }
+.process-heading { margin-bottom: 60px; max-width: 640px; }
+.process-heading .sub { font-size: 16px; line-height: 1.6; color: var(--light-gray-text); margin-top: 14px; }
+.process-timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border-gray); }
+.process-step { background: var(--light-bg); padding: 40px; }
+.process-step-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid-gray); margin-bottom: 20px; }
+.process-step-name { font-family: var(--font-heading); font-weight: 500; font-size: 20px; margin-bottom: 14px; }
+.process-step-body { font-size: 13px; line-height: 1.7; color: var(--dark-gray); }
+
+.process-vertical { display: none; flex-direction: column; }
+.process-v-item { display: flex; gap: 20px; }
+.process-v-line { display: flex; flex-direction: column; align-items: center; }
+.process-v-dot { width: 36px; height: 36px; border: 2px solid var(--black); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-weight: 500; font-size: 13px; flex-shrink: 0; }
+.process-v-connector { width: 1px; flex: 1; background: var(--border-gray); margin: 6px 0; }
+.process-v-content { padding-bottom: 36px; }
+.process-v-name { font-family: var(--font-heading); font-weight: 500; font-size: 18px; margin-bottom: 10px; }
+.process-v-body { font-size: 13px; line-height: 1.7; color: var(--dark-gray); }
+
+/* ── FEATURES ─────────────────────────────────────────────────────────────── */
+#features { padding: 100px 0; }
+.features-header { margin-bottom: 56px; max-width: 640px; }
+.features-header .sub { font-size: 16px; line-height: 1.6; color: var(--light-gray-text); margin-top: 14px; }
+.deliverables-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 20px; }
+.deliverable-item { border-top: 2px solid var(--black); padding-top: 28px; }
+.deliverable-title { font-family: var(--font-heading); font-weight: 500; font-size: 20px; margin-bottom: 14px; }
+.deliverable-body { font-size: 14px; line-height: 1.7; color: var(--dark-gray); }
+
+/* ── PRIVACY ──────────────────────────────────────────────────────────────── */
+#privacy { background: var(--black); color: var(--white); padding: 100px 0; }
+.privacy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 56px; }
+.privacy-list { display: flex; flex-direction: column; gap: 28px; }
+.privacy-item { border-top: 1px solid rgba(255,255,255,0.18); padding-top: 18px; }
+.privacy-item-title { font-family: var(--font-heading); font-weight: 500; font-size: 16px; margin-bottom: 8px; }
+.privacy-item-body { font-size: 13px; line-height: 1.7; color: rgba(255,255,255,0.6); }
+.privacy-text { font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.75); display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+.privacy-text .accent { color: var(--white); }
+
+/* ── COMPARISON ───────────────────────────────────────────────────────────── */
+#comparison { padding: 100px 0; }
+.comparison-header { margin-bottom: 56px; max-width: 640px; }
+.comparison-header .sub { font-size: 16px; line-height: 1.6; color: var(--light-gray-text); margin-top: 14px; }
+.comparison-table-wrap { overflow-x: auto; }
+.cmp-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+.cmp-table th {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mid-gray);
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 2px solid var(--black);
+}
+.cmp-table th:first-child { padding-left: 0; }
+.cmp-table td {
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-gray);
+  color: var(--dark-gray);
+}
+.cmp-table td:first-child { padding-left: 0; font-family: var(--font-heading); font-weight: 500; color: var(--black); }
+.cmp-table .col-applog { background: var(--pale-bg); font-weight: 500; color: var(--black); }
+.cmp-table th.col-applog { background: var(--black); color: var(--white); }
+
+/* ── FAQ ──────────────────────────────────────────────────────────────────── */
+#faq { background: var(--light-bg); padding: 100px 0; }
+.faq-heading { margin-bottom: 48px; max-width: 640px; }
+.accordion-item { border-top: 1px solid var(--border-gray); }
+.accordion-item:last-child { border-bottom: 1px solid var(--border-gray); }
+.accordion-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--black);
+  transition: opacity 0.2s;
+}
+.accordion-trigger:hover { opacity: 0.7; }
+.accordion-q { font-family: var(--font-mono); font-size: clamp(14px, 1.5vw, 17px); line-height: 1.45; color: inherit; }
+.accordion-icon { flex-shrink: 0; width: 20px; height: 20px; position: relative; }
+.accordion-icon::before, .accordion-icon::after { content: ''; position: absolute; background: var(--black); transition: transform 0.3s, opacity 0.3s; }
+.accordion-icon::before { width: 14px; height: 1.5px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.accordion-icon::after { width: 1.5px; height: 14px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.accordion-item.open .accordion-icon::after { opacity: 0; transform: translate(-50%, -50%) rotate(90deg); }
+.accordion-body { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
+.accordion-body-inner { font-size: 14px; line-height: 1.75; color: var(--dark-gray); padding-bottom: 28px; max-width: 760px; }
+
+/* ── FINAL CTA ────────────────────────────────────────────────────────────── */
+#final-cta { background: var(--near-black); color: var(--white); padding: 110px 0; text-align: center; }
+.final-cta-inner { max-width: 640px; margin: 0 auto; }
+.final-cta-heading { margin-bottom: 24px; }
+.final-cta-sub { font-size: 15px; line-height: 1.7; color: rgba(255,255,255,0.6); max-width: 480px; margin: 0 auto 40px; }
+.final-trust { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 24px; }
+
+/* ── FOOTER ───────────────────────────────────────────────────────────────── */
+#footer { background: #000000; border-top: 1px solid #414141; }
+.footer-inner { display: flex; align-items: center; justify-content: space-between; padding-top: 28px; padding-bottom: 28px; gap: 20px; }
+.footer-copy, .footer-link { font-size: 12px; color: #B2B2B2; transition: color 0.2s; }
+.footer-link:hover { color: #B6EDEE; }
+.footer-links { display: flex; gap: 28px; }
+
+/* ── RESPONSIVE ───────────────────────────────────────────────────────────── */
+@media (max-width: 992px) {
+  #problem { padding: 70px 0; }
+  #process { padding: 70px 0; }
+  #features { padding: 70px 0; }
+  #privacy { padding: 70px 0; }
+  .privacy-grid { gap: 48px; }
+  #comparison { padding: 70px 0; }
+  #faq { padding: 70px 0; }
+  #final-cta { padding: 80px 0; }
+  .process-timeline { display: none; }
+  .process-vertical { display: flex; }
+  .nav-links { display: none; }
+  .hamburger { display: flex; }
+  .footer-inner { flex-direction: column; text-align: center; }
+}
+
+@media (max-width: 767px) {
+  :root { --px: 20px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 28px; }
+  .stat-item { text-align: left; }
+  .cards-grid-3 { grid-template-columns: 1fr; }
+  .card-cell { padding: 28px; }
+  .deliverables-grid { grid-template-columns: 1fr; gap: 32px; }
+  .privacy-grid { grid-template-columns: 1fr; gap: 40px; }
+  .hero-ctas { flex-direction: column; width: 100%; }
+  .hero-ctas .btn { width: 100%; }
+  .hero-shot-wrap { transform: translateY(40px); }
+  #hero { padding-bottom: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────────────────────────── -->
+<nav id="nav">
+  <div class="container nav-inner">
+    <a href="#hero" class="nav-logo" aria-label="Applog">
+      <img class="nav-logo-mark" src="imgs/applog-logo.png" alt="" aria-hidden="true" />
+      Applog
+    </a>
+
+    <div class="nav-links">
+      <a href="#features" class="nav-link" onclick="navTo('features'); return false;">Features</a>
+      <a href="#privacy" class="nav-link" onclick="navTo('privacy'); return false;">Privacy</a>
+      <a href="#faq" class="nav-link" onclick="navTo('faq'); return false;">FAQ</a>
+      <button class="btn btn-on-dark" id="nav-cta" onclick="handleDownload('nav')">Download for Mac</button>
+    </div>
+
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Toggle navigation">
+      <span id="ham1"></span>
+      <span id="ham2"></span>
+      <span id="ham3"></span>
+    </button>
+  </div>
+</nav>
+
+<div id="mobile-menu">
+  <a href="#features" class="mobile-nav-link" onclick="navTo('features'); closeMenu(); return false;">Features</a>
+  <a href="#privacy" class="mobile-nav-link" onclick="navTo('privacy'); closeMenu(); return false;">Privacy</a>
+  <a href="#faq" class="mobile-nav-link" onclick="navTo('faq'); closeMenu(); return false;">FAQ</a>
+  <div class="mobile-cta">
+    <button class="btn btn-dark btn-full" onclick="handleDownload('nav'); closeMenu()">Download for Mac</button>
+  </div>
+</div>
+
+
+<!-- ── HERO ────────────────────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="container hero-inner">
+    <div class="hero-content">
+      <p class="hero-eyebrow">Menu Bar Time Tracking for macOS</p>
+      <h1 class="h1 hero-h1">
+        Automatic time tracking<br>
+        <span class="muted">that never phones home.</span>
+      </h1>
+      <p class="hero-sub">
+        Applog watches every app, tab, and document you touch — automatically, in your menu bar — and stores it all in a local file only you can see. No timers. No cloud. No "are you still there?" popups.
+      </p>
+      <div class="hero-ctas">
+        <button class="btn btn-on-dark btn-hero" onclick="handleDownload('hero')">Download for Mac</button>
+      </div>
+      <p class="hero-microcopy">
+        Free to try. Requires macOS. Your data never leaves your device.
+      </p>
+    </div>
+    <div class="hero-shot-wrap">
+      <div class="hero-shot">
+        <img src="imgs/applog-screen.png" alt="Applog Statistics window showing a hierarchical tree of tracked apps and a daily timeline colored by project tag" />
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── STATS BAR ───────────────────────────────────────────────────────────── -->
+<section id="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value">5 sec</div>
+        <p class="stat-label">default sampling interval — no manual timer to start or forget</p>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">0</div>
+        <p class="stat-label">bytes of tracked data ever leave your Mac</p>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">&lt;1%</div>
+        <p class="stat-label">average CPU while idle-sampling in the background</p>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">∞</div>
+        <p class="stat-label">tabs, documents, and windows tracked per app — no allow-list</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── PROBLEM ─────────────────────────────────────────────────────────────── -->
+<section id="problem">
+  <div class="container">
+    <div class="problem-heading">
+      <h2 class="h2">Every other tracker makes you choose one of these.</h2>
+      <p class="sub">Applog doesn't.</p>
+    </div>
+    <div class="cards-grid-3">
+      <div class="card-cell">
+        <p class="card-title">"Start the timer" — then forget to.</p>
+        <p class="card-body">Manual timers only work if you remember to click them. Applog samples the frontmost app automatically, every 5 seconds, so nothing depends on your memory.</p>
+        <p class="card-tag">Automatic sampling</p>
+      </div>
+      <div class="card-cell">
+        <p class="card-title">"Chrome: 4h 12m" tells you nothing.</p>
+        <p class="card-body">Most trackers lump every browser tab into one app-level entry. Applog builds a real hierarchy — browser, domain, and exact page title — and does the same for terminals, editors, and chat apps.</p>
+        <p class="card-tag">Per-tab / per-document detail</p>
+      </div>
+      <div class="card-cell">
+        <p class="card-title">"Are you still there?" — no.</p>
+        <p class="card-body">Idle-nag dialogs interrupt your flow to ask a question you don't want to answer mid-task. Applog detects idle and away time silently and lets you tag it later, on your own schedule.</p>
+        <p class="card-tag">Silent idle & away detection</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── HOW IT WORKS ────────────────────────────────────────────────────────── -->
+<section id="process">
+  <div class="container">
+    <div class="process-heading">
+      <h2 class="h2">How it works</h2>
+      <p class="sub">Three steps, and you never think about it again.</p>
+    </div>
+
+    <div class="process-timeline">
+      <div class="process-step">
+        <p class="process-step-label">Step 1</p>
+        <p class="process-step-name">Grant Accessibility access, once</p>
+        <p class="process-step-body">Applog explains exactly why it needs to read window titles and deep-links you straight to System Settings. No Input Monitoring permission required — idle detection never reads keystroke content.</p>
+      </div>
+      <div class="process-step">
+        <p class="process-step-label">Step 2</p>
+        <p class="process-step-name">Work normally</p>
+        <p class="process-step-body">Every 5 seconds, Applog notes the frontmost app and window. Idle and away time are detected silently and dropped into a dedicated "Away" node you can categorize whenever you like.</p>
+      </div>
+      <div class="process-step">
+        <p class="process-step-label">Step 3</p>
+        <p class="process-step-name">Review and tag</p>
+        <p class="process-step-body">Open Statistics from the menu bar any time. Drill into the tree, apply color-coded tags to any app, domain, or page for billing and reporting, and see your daily rhythm at a glance.</p>
+      </div>
+    </div>
+
+    <div class="process-vertical">
+      <div class="process-v-item">
+        <div class="process-v-line">
+          <div class="process-v-dot">1</div>
+          <div class="process-v-connector"></div>
+        </div>
+        <div class="process-v-content">
+          <p class="process-v-name">Grant Accessibility access, once</p>
+          <p class="process-v-body">Applog explains exactly why it needs to read window titles and deep-links you straight to System Settings. No Input Monitoring permission required.</p>
+        </div>
+      </div>
+      <div class="process-v-item">
+        <div class="process-v-line">
+          <div class="process-v-dot">2</div>
+          <div class="process-v-connector"></div>
+        </div>
+        <div class="process-v-content">
+          <p class="process-v-name">Work normally</p>
+          <p class="process-v-body">Every 5 seconds, Applog notes the frontmost app and window. Idle and away time are detected silently and dropped into a dedicated "Away" node.</p>
+        </div>
+      </div>
+      <div class="process-v-item">
+        <div class="process-v-line">
+          <div class="process-v-dot">3</div>
+        </div>
+        <div class="process-v-content">
+          <p class="process-v-name">Review and tag</p>
+          <p class="process-v-body">Open Statistics from the menu bar any time. Drill into the tree, apply color-coded tags, and see your daily rhythm at a glance.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── FEATURES ────────────────────────────────────────────────────────────── -->
+<section id="features">
+  <div class="container">
+    <div class="features-header">
+      <h2 class="h2">Built for how you actually work</h2>
+      <p class="sub">Every feature maps to a real tracking gap other tools leave open.</p>
+    </div>
+    <div class="deliverables-grid">
+      <div class="deliverable-item">
+        <p class="deliverable-title">Per-tab, per-document tracking</p>
+        <p class="deliverable-body">No fixed app list. Every distinct tab, note, channel, or file you look at earns its own row in the tree — automatically, across any app.</p>
+      </div>
+      <div class="deliverable-item">
+        <p class="deliverable-title">Smart browser hierarchy</p>
+        <p class="deliverable-body">Safari, Chrome, Firefox, Arc, and Edge get a dedicated Browser → Domain → Page hierarchy, read via the Accessibility API — not guessed from window titles.</p>
+      </div>
+      <div class="deliverable-item">
+        <p class="deliverable-title">Tag anything</p>
+        <p class="deliverable-body">Color-coded project tags apply to any node — app, domain, or page — and cascade down the tree with per-node overrides where you need them.</p>
+      </div>
+      <div class="deliverable-item">
+        <p class="deliverable-title">Daily rhythm timeline</p>
+        <p class="deliverable-body">A 24-hour strip per day, colored by tag, stacked across your whole history — so patterns and idle stretches are visible at a glance.</p>
+      </div>
+      <div class="deliverable-item">
+        <p class="deliverable-title">Manual correction & merging</p>
+        <p class="deliverable-body">Missed time because an app quit mid-session? Adjust minutes by hand, merge duplicate nodes, or merge in a database from another Mac.</p>
+      </div>
+      <div class="deliverable-item">
+        <p class="deliverable-title">Export everywhere</p>
+        <p class="deliverable-body">HTML reports for sharing, CSV/JSON for spreadsheets, or a raw database export for merging into another Applog install.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── PRIVACY ─────────────────────────────────────────────────────────────── -->
+<section id="privacy">
+  <div class="container">
+    <h2 class="h2">No signup. No account. No network requests — ever.</h2>
+    <div class="privacy-grid">
+      <div class="privacy-text">
+        <p>Applog stores everything in a single SQLite file under your own Library folder. There's no server to send data to, because there's no server at all.</p>
+        <p class="accent">You can open "Show Database in Finder" at any time and inspect the raw file yourself. Nothing is hidden from you, and nothing leaves your Mac.</p>
+      </div>
+      <div class="privacy-list">
+        <div class="privacy-item">
+          <p class="privacy-item-title">Accessibility, not Input Monitoring</p>
+          <p class="privacy-item-body">Applog reads window titles via the Accessibility API to build the tracking tree. Idle detection uses system-wide input timestamps only — never keystroke content — so Input Monitoring permission isn't required.</p>
+        </div>
+        <div class="privacy-item">
+          <p class="privacy-item-title">Click and keypress counts only</p>
+          <p class="privacy-item-body">Applog counts keyboard presses and mouse clicks for engagement-intensity display. What you actually type is never captured, stored, or transmitted.</p>
+        </div>
+        <div class="privacy-item">
+          <p class="privacy-item-title">Exclusion list built in</p>
+          <p class="privacy-item-body">Add any app or browser domain to an exclusion list in Settings — excluded items are never sampled or stored, full stop.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── COMPARISON ──────────────────────────────────────────────────────────── -->
+<section id="comparison">
+  <div class="container">
+    <div class="comparison-header">
+      <h2 class="h2">How Applog compares</h2>
+      <p class="sub">The categories that actually differ between trackers.</p>
+    </div>
+    <div class="comparison-table-wrap">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="col-applog">Applog</th>
+            <th>RescueTime</th>
+            <th>Timing</th>
+            <th>ActivityWatch</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Data leaves device</td>
+            <td class="col-applog">Never</td>
+            <td>Yes, cloud-synced</td>
+            <td>Optional cloud</td>
+            <td>Never</td>
+          </tr>
+          <tr>
+            <td>Per-tab / per-doc tracking</td>
+            <td class="col-applog">Automatic, any app</td>
+            <td>Limited</td>
+            <td>Manual rules</td>
+            <td>Watcher plugins</td>
+          </tr>
+          <tr>
+            <td>Idle handling</td>
+            <td class="col-applog">Silent, tag later</td>
+            <td>Popup prompts</td>
+            <td>Popup prompts</td>
+            <td>Silent</td>
+          </tr>
+          <tr>
+            <td>Setup</td>
+            <td class="col-applog">Menu bar, one permission</td>
+            <td>Account + agent</td>
+            <td>Account + agent</td>
+            <td>Self-hosted watchers</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── FAQ ─────────────────────────────────────────────────────────────────── -->
+<section id="faq">
+  <div class="container">
+    <div class="faq-heading">
+      <h2 class="h2">Frequently asked</h2>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this)">
+          <span class="accordion-q">Does Applog see what I type?</span>
+          <span class="accordion-icon"></span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">No. Applog reads app and window titles, plus keyboard/mouse click counts for engagement display. Actual keystrokes and typed content are never captured, stored, or transmitted.</div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this)">
+          <span class="accordion-q">What happens if I quit an app before Applog notices?</span>
+          <span class="accordion-icon"></span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">You can manually adjust minutes on any node in the tree — this covers cases where tracking missed time, like an app being force-quit mid-session.</div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this)">
+          <span class="accordion-q">Can I use Applog across two Macs?</span>
+          <span class="accordion-icon"></span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">Yes, via manual export/merge — export a database file from one Mac and merge it into another. There's no live cloud sync, by design.</div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this)">
+          <span class="accordion-q">Will this slow down my Mac?</span>
+          <span class="accordion-icon"></span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">No — Applog targets under 1% average CPU while idle-sampling in the background, and the SQLite database stays in the low tens of MB even across years of history.</div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-trigger" onclick="toggleAccordion(this)">
+          <span class="accordion-q">Which permissions does Applog need?</span>
+          <span class="accordion-icon"></span>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-body-inner">Accessibility access, to read window titles from other apps. Input Monitoring is not required — idle detection relies only on system-wide input timestamps, never keystroke content.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ── FINAL CTA ───────────────────────────────────────────────────────────── -->
+<section id="final-cta">
+  <div class="container final-cta-inner">
+    <h2 class="h2 final-cta-heading">Start tracking your time, privately.</h2>
+    <p class="final-cta-sub">Free to try. Your data never leaves your Mac.</p>
+    <button class="btn btn-on-dark btn-hero" onclick="handleDownload('final')">Download for Mac</button>
+    <p class="final-trust">No signup required to try it.</p>
+  </div>
+</section>
+
+
+<!-- ── FOOTER ──────────────────────────────────────────────────────────────── -->
+<footer id="footer">
+  <div class="container footer-inner">
+    <p class="footer-copy">© 2026 Applog. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="#privacy" class="footer-link" onclick="navTo('privacy'); return false;">Privacy</a>
+      <a href="#faq" class="footer-link" onclick="navTo('faq'); return false;">FAQ</a>
+      <a href="privacy-policy.html" class="footer-link">Privacy Policy</a>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+// Nav scroll state
+window.addEventListener('scroll', function () {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+function navTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+function toggleMenu() {
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+function closeMenu() {
+  document.getElementById('mobile-menu').classList.remove('open');
+}
+
+function handleDownload(source) {
+  console.log('Download requested from:', source);
+  window.location.href = 'releases/applog-v1.0.dmg';
+}
+
+function toggleAccordion(trigger) {
+  const item = trigger.closest('.accordion-item');
+  const body = item.querySelector('.accordion-body');
+  const isOpen = item.classList.contains('open');
+
+  document.querySelectorAll('.accordion-item.open').forEach(function (openItem) {
+    if (openItem !== item) {
+      openItem.classList.remove('open');
+      openItem.querySelector('.accordion-body').style.maxHeight = null;
+    }
+  });
+
+  if (isOpen) {
+    item.classList.remove('open');
+    body.style.maxHeight = null;
+  } else {
+    item.classList.add('open');
+    body.style.maxHeight = body.scrollHeight + 'px';
+  }
+}
+</script>
+
+</body>
+</html>

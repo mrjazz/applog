@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Axion Applog — Privacy Policy</title>
+<style>
+  :root {
+    color-scheme: light dark;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+    line-height: 1.6;
+    color: #1c1c1e;
+    background: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e5e5ea; background: #1c1c1e; }
+    a { color: #6ea8fe; }
+    .card { background: #2c2c2e; border-color: #3a3a3c; }
+    code { background: #2c2c2e; }
+  }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  h2 { font-size: 18px; margin-top: 40px; }
+  .updated { color: #6e6e73; font-size: 13px; margin-bottom: 32px; }
+  .card {
+    border: 1px solid #e5e5ea;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 24px 0;
+    background: #f7f7f8;
+  }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 8px; }
+  code {
+    background: #f0f0f2;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  a { color: #0066cc; }
+  footer { margin-top: 56px; font-size: 13px; color: #6e6e73; }
+</style>
+</head>
+<body>
+
+<h1>Privacy Policy</h1>
+<p class="updated">Axion Applog for macOS — last updated July 7, 2026</p>
+
+<div class="card">
+  <strong>Summary:</strong> Axion Applog does not collect, transmit, or sell any of your data.
+  Everything it records stays in a database file on your own Mac. There is no account,
+  no analytics, no advertising, and no network connection of any kind.
+</div>
+
+<h2>What Axion Applog does</h2>
+<p>
+  Axion Applog is a menu bar app that automatically observes which app, document, tab, or
+  website is frontmost on your Mac, and for how long, so you can review your own usage
+  patterns later. It runs entirely on-device.
+</p>
+
+<h2>What data is recorded</h2>
+<ul>
+  <li>The bundle identifier and display name of the app in front</li>
+  <li>The title of the focused window, and — for supported browsers — the active tab's URL and domain</li>
+  <li>Timestamps and durations of the above, including idle and "away" periods</li>
+  <li>Aggregate keyboard/mouse activity counts (whether input occurred, never the content of what was typed or clicked)</li>
+  <li>Any tags, exclusions, or notes you choose to add</li>
+</ul>
+<p>
+  Axion Applog never records keystroke content, clipboard contents, screenshots, or the
+  contents of any document, message, or page — only titles, URLs, and timing.
+</p>
+
+<h2>Where it's stored</h2>
+<p>
+  All recorded data lives in a local SQLite database at
+  <code>~/Library/Application Support/Axion Applog/</code> on your Mac. There is no cloud
+  account, no remote server, and no third-party service involved in storing this data.
+  Rolling local backups are kept for recovery purposes only, on the same disk.
+</p>
+
+<h2>What leaves your device</h2>
+<p>
+  Nothing. Axion Applog has no network component. It does not transmit usage data,
+  crash reports, or telemetry anywhere, and it does not share data with any third party,
+  advertiser, or analytics provider.
+</p>
+<p>
+  Data only ever leaves your device if <em>you</em> choose to export it — as an HTML
+  report, a CSV/JSON file, or a database file — and only to a location you pick yourself.
+</p>
+
+<h2>Permissions Axion Applog requests</h2>
+<ul>
+  <li>
+    <strong>Accessibility</strong> — used to read the title of the currently focused
+    window in other apps, so that time can be attributed to the correct document, tab,
+    or conversation. Axion Applog explains this the first time it's needed and links
+    directly to System Settings; it never reads keystrokes through this permission.
+  </li>
+  <li>
+    <strong>Automation (Apple Events)</strong> — used only to ask supported browsers
+    (Safari, Chrome, Edge, Arc) for the URL of the active tab, so time can be grouped
+    by website domain. Axion Applog does not control, modify, or interact with any app
+    beyond reading this one piece of information.
+  </li>
+</ul>
+
+<h2>Your control over the data</h2>
+<ul>
+  <li>Exclude specific apps or browser domains from ever being tracked</li>
+  <li>Hide, merge, rename, or manually correct any recorded item</li>
+  <li>Export or delete the underlying database at any time — it's a plain file you own</li>
+</ul>
+
+<h2>Children's privacy</h2>
+<p>
+  Axion Applog is a general productivity tool not directed at children and does not
+  knowingly collect data from children, on-device or otherwise.
+</p>
+
+<h2>Changes to this policy</h2>
+<p>
+  If this policy changes, the "last updated" date above will be revised and the new
+  version will be published at this same address.
+</p>
+
+<h2>Contact</h2>
+<p>
+  Questions about this policy or how Axion Applog handles data can be sent to
+  <a href="mailto:denis.sheremetov@gmail.com">denis.sheremetov@gmail.com</a>.
+</p>
+
+<footer>Axion Applog — a local-only, offline activity tracker for macOS.</footer>
+
+</body>
+</html>
