@@ -14,6 +14,7 @@ ARCHIVE_PATH="$BUILD_DIR/applog.xcarchive"
 EXPORT_PATH="$BUILD_DIR/export"
 EXPORT_OPTIONS_PLIST="$BUILD_DIR/export-options.plist"
 RELEASES_DIR="$ROOT_DIR/site/releases"
+NOTARY_PROFILE="applog-notary"
 
 VERSION=$(xcodebuild -project "$PROJECT" -scheme "$SCHEME" -showBuildSettings -configuration "$CONFIGURATION" 2>/dev/null | awk -F' = ' '/MARKETING_VERSION/{print $2; exit}')
 if [ -z "$VERSION" ]; then
@@ -44,7 +45,7 @@ cat > "$EXPORT_OPTIONS_PLIST" <<EOF
 <plist version="1.0">
 <dict>
     <key>method</key>
-    <string>mac-application</string>
+    <string>developer-id</string>
     <key>signingStyle</key>
     <string>automatic</string>
 </dict>
@@ -63,6 +64,14 @@ if [ ! -d "$APP_PATH" ]; then
   exit 1
 fi
 
+echo "==> Notarizing app"
+NOTARIZE_ZIP="$BUILD_DIR/$APP_NAME.zip"
+ditto -c -k --keepParent "$APP_PATH" "$NOTARIZE_ZIP"
+xcrun notarytool submit "$NOTARIZE_ZIP" --keychain-profile "$NOTARY_PROFILE" --wait
+
+echo "==> Stapling app"
+xcrun stapler staple "$APP_PATH"
+
 echo "==> Assembling DMG contents"
 rm -rf "$STAGING_DIR"
 mkdir -p "$STAGING_DIR"
@@ -76,5 +85,11 @@ hdiutil create -volname "$APP_NAME" \
   -srcfolder "$STAGING_DIR" \
   -ov -format UDZO \
   "$DMG_PATH"
+
+echo "==> Notarizing DMG"
+xcrun notarytool submit "$DMG_PATH" --keychain-profile "$NOTARY_PROFILE" --wait
+
+echo "==> Stapling DMG"
+xcrun stapler staple "$DMG_PATH"
 
 echo "==> Done: $DMG_PATH"
