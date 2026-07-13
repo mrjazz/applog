@@ -64,7 +64,7 @@ final class StatisticsViewModel: ObservableObject {
     @Published var filterOnTag = false
     @Published var minDurationMinutes: Double = 0
     @Published var searchText = ""
-    @Published var quickSet: DateQuickSet = .allTime {
+    @Published var quickSet: DateQuickSet = .today {
         didSet {
             guard let range = quickSet.range else { return }
             customFrom = range.from
@@ -73,8 +73,8 @@ final class StatisticsViewModel: ObservableObject {
     }
     /// Seeds the custom-range calendars with a sensible starting window
     /// before the user has touched them — not tied to `quickSet`'s default
-    /// (`.allTime`), since seeding "From" at the Unix epoch would open the
-    /// calendar decades back the first time Custom Range is picked.
+    /// (`.today`), since seeding "From" at today's start would collapse the
+    /// calendar to a single day the first time Custom Range is picked.
     @Published var customFrom: Date = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
     @Published var customTo: Date = Date()
     @Published var timelineDays: [(label: String, totalSeconds: Int, blocks: [TimelineBlock])] = []
