@@ -13,6 +13,21 @@ private struct WindowOpenerBridge: View {
     }
 }
 
+/// Binds Cmd-, to open Settings, replacing the default (disabled) Preferences
+/// item that macOS puts in the app menu when there's no `Settings` scene.
+private struct SettingsCommands: Commands {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some Commands {
+        CommandGroup(replacing: .appSettings) {
+            Button("Settings…") {
+                openWindow(id: "settings")
+            }
+            .keyboardShortcut(",", modifiers: .command)
+        }
+    }
+}
+
 @main
 struct applogApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
@@ -47,5 +62,6 @@ struct applogApp: App {
         }
         .defaultSize(width: 560, height: 620)
         .windowResizability(.contentSize)
+        .commands { SettingsCommands() }
     }
 }
