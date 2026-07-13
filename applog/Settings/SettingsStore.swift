@@ -2,9 +2,29 @@ import Foundation
 import SwiftUI
 import AppKit
 import Combine
+import os
 #if canImport(ServiceManagement)
 import ServiceManagement
 #endif
+
+/// The status-item's display mode. Not yet wired to `AppDelegate`'s status
+/// item rendering — persisted and editable in Settings, but every style
+/// still shows the same glyph today.
+enum MenuBarIconStyle: String, CaseIterable, Identifiable {
+    case glyph
+    case time
+    case hidden
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .glyph: return "Glyph"
+        case .time: return "Time"
+        case .hidden: return "Hidden"
+        }
+    }
+}
 
 /// Typed accessors over the `setting` key/value table. Settings are persisted
 /// in the database (not UserDefaults) so they travel with export/merge/restore,
@@ -22,7 +42,7 @@ final class SettingsStore: ObservableObject {
     @Published var backupRetentionCount: Int
     @Published var cullThresholdSeconds: Int
     @Published var cullAgeDays: Int
-    @Published var menuBarIconStyle: String
+    @Published var menuBarIconStyle: MenuBarIconStyle
 
     init(store: Store) async {
         self.store = store
@@ -35,7 +55,7 @@ final class SettingsStore: ObservableObject {
         backupRetentionCount = Int((try? await store.setting("backupRetentionCount")) ?? "") ?? 10
         cullThresholdSeconds = Int((try? await store.setting("cullThresholdSeconds")) ?? "") ?? 60
         cullAgeDays = Int((try? await store.setting("cullAgeDays")) ?? "") ?? 30
-        menuBarIconStyle = (try? await store.setting("menuBarIconStyle")) ?? "glyph"
+        menuBarIconStyle = MenuBarIconStyle(rawValue: (try? await store.setting("menuBarIconStyle")) ?? "") ?? .glyph
     }
 
     func persist(_ key: String, _ value: String) {
@@ -85,9 +105,9 @@ final class SettingsStore: ObservableObject {
         persist("cullAgeDays", String(ageDays))
     }
 
-    func setMenuBarIconStyle(_ style: String) {
+    func setMenuBarIconStyle(_ style: MenuBarIconStyle) {
         menuBarIconStyle = style
-        persist("menuBarIconStyle", style)
+        persist("menuBarIconStyle", style.rawValue)
     }
 }
 
@@ -108,7 +128,7 @@ enum LoginItemManager {
                     }
                 }
             } catch {
-                print("LoginItemManager: failed to update login item — \(error)")
+                AppLogger.settings.error("failed to update login item: \(error)")
             }
         }
         #endif

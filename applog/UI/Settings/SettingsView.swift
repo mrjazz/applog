@@ -78,9 +78,9 @@ struct SettingsView: View {
                         get: { settings.menuBarIconStyle },
                         set: { settings.setMenuBarIconStyle($0) }
                     )) {
-                        Text("Glyph").tag("glyph")
-                        Text("Time").tag("time")
-                        Text("Hidden").tag("hidden")
+                        ForEach(MenuBarIconStyle.allCases) { style in
+                            Text(style.label).tag(style)
+                        }
                     }
                     .labelsHidden()
                     .pickerStyle(.segmented)

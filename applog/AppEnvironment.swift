@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import os
 
 /// Bootstraps the async pieces (DB open, settings load) once at launch and
 /// hands out the shared instances every view/scene needs. A single instance
@@ -40,7 +41,7 @@ final class AppEnvironment: ObservableObject {
             await engine.start()
             await vm.refresh()
         } catch {
-            print("AppEnvironment: bootstrap failed — \(error)")
+            AppLogger.environment.error("bootstrap failed: \(error)")
         }
     }
 

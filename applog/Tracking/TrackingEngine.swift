@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import os
 
 nonisolated enum IdleState: Equatable {
     case active
@@ -98,7 +99,7 @@ actor TrackingEngine {
                     keyClicks: 0, mouseClicks: 0, toNode: awayID, day: now
                 )
             } catch {
-                print("TrackingEngine: failed to flush away time — \(error)")
+                AppLogger.tracking.error("failed to flush away time: \(error)")
             }
             idleAccumulatorStart = nil
         }
@@ -139,7 +140,7 @@ actor TrackingEngine {
                 keyClicks: 0, mouseClicks: 0, toNode: leafNodeID, day: now
             )
         } catch {
-            print("TrackingEngine: failed to record sample — \(error)")
+            AppLogger.tracking.error("failed to record sample: \(error)")
         }
     }
 

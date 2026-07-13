@@ -96,20 +96,30 @@ actor Store {
         }
     }
 
+    /// Prepares `sql` against the connection, surfacing sqlite's own error
+    /// message on failure instead of silently handing back a null statement
+    /// for the caller's `sqlite3_step` to fail on with no diagnostic.
+    private func prepare(_ sql: String) throws -> OpaquePointer? {
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+            throw StoreError.sqlError(String(cString: sqlite3_errmsg(db)))
+        }
+        return stmt
+    }
+
     // MARK: - Node graph
 
     /// Finds or creates the node for one level of a hierarchy chain (e.g. the
     /// "github.com" domain node under the "Safari" app node).
     @discardableResult
     func findOrCreateNode(parentID: Int64?, kind: NodeKind, name: String, bundleID: String? = nil) throws -> Int64 {
-        var stmt: OpaquePointer?
         let selectSQL: String
         if parentID == nil {
             selectSQL = "SELECT id FROM node WHERE parent_id IS NULL AND kind = ? AND name = ?;"
         } else {
             selectSQL = "SELECT id FROM node WHERE parent_id = ? AND kind = ? AND name = ?;"
         }
-        sqlite3_prepare_v2(db, selectSQL, -1, &stmt, nil)
+        let stmt = try prepare(selectSQL)
         defer { sqlite3_finalize(stmt) }
         var bindIndex: Int32 = 1
         if let parentID {
@@ -122,11 +132,10 @@ actor Store {
             return sqlite3_column_int64(stmt, 0)
         }
 
-        var insert: OpaquePointer?
-        sqlite3_prepare_v2(db, """
+        let insert = try prepare("""
             INSERT INTO node (parent_id, kind, name, bundle_id, created_at)
             VALUES (?, ?, ?, ?, ?);
-        """, -1, &insert, nil)
+        """)
         defer { sqlite3_finalize(insert) }
         if let parentID {
             sqlite3_bind_int64(insert, 1, parentID)
@@ -154,8 +163,7 @@ actor Store {
     }
 
     func allNodes() throws -> [Int64: Node] {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "SELECT id, parent_id, kind, name, bundle_id, tag_id, hidden, created_at FROM node;", -1, &stmt, nil)
+        let stmt = try prepare("SELECT id, parent_id, kind, name, bundle_id, tag_id, hidden, created_at FROM node;")
         defer { sqlite3_finalize(stmt) }
         var result: [Int64: Node] = [:]
         let iso = ISO8601DateFormatter()
@@ -179,8 +187,7 @@ actor Store {
     /// (for semi-idle bookkeeping / click counts) updates the same row.
     func addActiveSeconds(_ seconds: Int, isSemiIdle: Bool, keyClicks: Int, mouseClicks: Int, toNode nodeID: Int64, day: Date) throws {
         let dayString = Self.dayFormatter.string(from: day)
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, """
+        let stmt = try prepare("""
             INSERT INTO usage_bucket (node_id, day, active_seconds, semi_idle_seconds, key_clicks, mouse_clicks)
             VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(node_id, day) DO UPDATE SET
@@ -188,7 +195,7 @@ actor Store {
                 semi_idle_seconds = semi_idle_seconds + excluded.semi_idle_seconds,
                 key_clicks = key_clicks + excluded.key_clicks,
                 mouse_clicks = mouse_clicks + excluded.mouse_clicks;
-        """, -1, &stmt, nil)
+        """)
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_int64(stmt, 1, nodeID)
         sqlite3_bind_text(stmt, 2, dayString, -1, SQLITE_TRANSIENT)
@@ -202,8 +209,7 @@ actor Store {
     }
 
     func recordSession(nodeID: Int64, startedAt: Date, endedAt: Date) throws {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "INSERT INTO session (node_id, started_at, ended_at) VALUES (?, ?, ?);", -1, &stmt, nil)
+        let stmt = try prepare("INSERT INTO session (node_id, started_at, ended_at) VALUES (?, ?, ?);")
         defer { sqlite3_finalize(stmt) }
         let iso = ISO8601DateFormatter()
         sqlite3_bind_int64(stmt, 1, nodeID)
@@ -220,12 +226,11 @@ actor Store {
         let start = cal.startOfDay(for: day)
         let end = cal.date(byAdding: .day, value: 1, to: start)!
         let iso = ISO8601DateFormatter()
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, """
+        let stmt = try prepare("""
             SELECT node_id, started_at, ended_at FROM session
             WHERE started_at < ? AND ended_at > ?
             ORDER BY started_at ASC;
-        """, -1, &stmt, nil)
+        """)
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_text(stmt, 1, iso.string(from: end), -1, SQLITE_TRANSIENT)
         sqlite3_bind_text(stmt, 2, iso.string(from: start), -1, SQLITE_TRANSIENT)
@@ -243,12 +248,11 @@ actor Store {
     func ownActiveSeconds(from: Date, to: Date) throws -> [Int64: Int] {
         let fromString = Self.dayFormatter.string(from: from)
         let toString = Self.dayFormatter.string(from: to)
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, """
+        let stmt = try prepare("""
             SELECT node_id, SUM(active_seconds) FROM usage_bucket
             WHERE day BETWEEN ? AND ?
             GROUP BY node_id;
-        """, -1, &stmt, nil)
+        """)
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_text(stmt, 1, fromString, -1, SQLITE_TRANSIENT)
         sqlite3_bind_text(stmt, 2, toString, -1, SQLITE_TRANSIENT)
@@ -269,8 +273,7 @@ actor Store {
     // MARK: - Tags
 
     func allTags() throws -> [Tag] {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "SELECT id, name, color FROM tag ORDER BY name;", -1, &stmt, nil)
+        let stmt = try prepare("SELECT id, name, color FROM tag ORDER BY name;")
         defer { sqlite3_finalize(stmt) }
         var tags: [Tag] = []
         while sqlite3_step(stmt) == SQLITE_ROW {
@@ -285,8 +288,7 @@ actor Store {
 
     @discardableResult
     func createTag(name: String, colorHex: String) throws -> Int64 {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "INSERT INTO tag (name, color) VALUES (?, ?);", -1, &stmt, nil)
+        let stmt = try prepare("INSERT INTO tag (name, color) VALUES (?, ?);")
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_text(stmt, 1, name, -1, SQLITE_TRANSIENT)
         sqlite3_bind_text(stmt, 2, colorHex, -1, SQLITE_TRANSIENT)
@@ -297,8 +299,7 @@ actor Store {
     }
 
     func renameTag(id: Int64, to name: String) throws {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "UPDATE tag SET name = ? WHERE id = ?;", -1, &stmt, nil)
+        let stmt = try prepare("UPDATE tag SET name = ? WHERE id = ?;")
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_text(stmt, 1, name, -1, SQLITE_TRANSIENT)
         sqlite3_bind_int64(stmt, 2, id)
@@ -308,8 +309,7 @@ actor Store {
     }
 
     func applyTag(_ tagID: Int64?, toNode nodeID: Int64) throws {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "UPDATE node SET tag_id = ? WHERE id = ?;", -1, &stmt, nil)
+        let stmt = try prepare("UPDATE node SET tag_id = ? WHERE id = ?;")
         defer { sqlite3_finalize(stmt) }
         if let tagID {
             sqlite3_bind_int64(stmt, 1, tagID)
@@ -325,8 +325,7 @@ actor Store {
     // MARK: - Settings (key/value, so they travel with the database — see design.md §6)
 
     func setting(_ key: String) throws -> String? {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "SELECT value FROM setting WHERE key = ?;", -1, &stmt, nil)
+        let stmt = try prepare("SELECT value FROM setting WHERE key = ?;")
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_text(stmt, 1, key, -1, SQLITE_TRANSIENT)
         guard sqlite3_step(stmt) == SQLITE_ROW else { return nil }
@@ -334,8 +333,7 @@ actor Store {
     }
 
     func setSetting(_ key: String, _ value: String) throws {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "INSERT INTO setting (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;", -1, &stmt, nil)
+        let stmt = try prepare("INSERT INTO setting (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;")
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_text(stmt, 1, key, -1, SQLITE_TRANSIENT)
         sqlite3_bind_text(stmt, 2, value, -1, SQLITE_TRANSIENT)
@@ -347,8 +345,7 @@ actor Store {
     // MARK: - Exclusions
 
     func exclusions(kind: ExclusionKind) throws -> [String] {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "SELECT value FROM exclusion WHERE kind = ?;", -1, &stmt, nil)
+        let stmt = try prepare("SELECT value FROM exclusion WHERE kind = ?;")
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_text(stmt, 1, kind.rawValue, -1, SQLITE_TRANSIENT)
         var values: [String] = []
@@ -359,8 +356,7 @@ actor Store {
     }
 
     func addExclusion(kind: ExclusionKind, value: String) throws {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "INSERT OR IGNORE INTO exclusion (kind, value) VALUES (?, ?);", -1, &stmt, nil)
+        let stmt = try prepare("INSERT OR IGNORE INTO exclusion (kind, value) VALUES (?, ?);")
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_text(stmt, 1, kind.rawValue, -1, SQLITE_TRANSIENT)
         sqlite3_bind_text(stmt, 2, value, -1, SQLITE_TRANSIENT)
@@ -370,8 +366,7 @@ actor Store {
     }
 
     func removeExclusion(kind: ExclusionKind, value: String) throws {
-        var stmt: OpaquePointer?
-        sqlite3_prepare_v2(db, "DELETE FROM exclusion WHERE kind = ? AND value = ?;", -1, &stmt, nil)
+        let stmt = try prepare("DELETE FROM exclusion WHERE kind = ? AND value = ?;")
         defer { sqlite3_finalize(stmt) }
         sqlite3_bind_text(stmt, 1, kind.rawValue, -1, SQLITE_TRANSIENT)
         sqlite3_bind_text(stmt, 2, value, -1, SQLITE_TRANSIENT)

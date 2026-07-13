@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import os
 
 enum DateQuickSet: String, CaseIterable, Identifiable {
     case today = "Today"
@@ -151,7 +152,7 @@ final class StatisticsViewModel: ObservableObject {
 
             await refreshTimeline(nodes: nodes, tagsByID: tagsByID, filter: filter)
         } catch {
-            print("StatisticsViewModel: refresh failed — \(error)")
+            AppLogger.statistics.error("refresh failed: \(error)")
         }
     }
 
