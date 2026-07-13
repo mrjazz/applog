@@ -88,19 +88,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             action: #selector(togglePauseTracking), keyEquivalent: ""
         )
         pauseItem.target = self
+        pauseItem.image = NSImage(systemSymbolName: isPaused ? "play.fill" : "pause.fill", accessibilityDescription: nil)
         menu.addItem(pauseItem)
 
-        let statisticsItem = NSMenuItem(title: "Statistics…", action: #selector(openStatistics), keyEquivalent: "")
+        let statisticsItem = NSMenuItem(title: "Statistics", action: #selector(openStatistics), keyEquivalent: "")
         statisticsItem.target = self
+        statisticsItem.image = NSImage(systemSymbolName: "chart.bar.fill", accessibilityDescription: nil)
         menu.addItem(statisticsItem)
 
-        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+        let settingsItem = NSMenuItem(title: "Settings", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
+        settingsItem.image = NSImage(systemSymbolName: "gearshape.fill", accessibilityDescription: nil)
         menu.addItem(settingsItem)
 
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(title: "Quit AppTracker", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        quitItem.image = NSImage(systemSymbolName: "xmark.circle.fill", accessibilityDescription: nil)
         menu.addItem(quitItem)
 
         statusItem.menu = menu
