@@ -6,6 +6,8 @@ struct FilterSidebar: View {
     @State private var renameText = ""
     @State private var isAddingTag = false
     @State private var newTagName = ""
+    @State private var colorPickerTagID: Int64?
+    @State private var selectedTagColor = Color.clear
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -147,7 +149,28 @@ struct FilterSidebar: View {
         let isSelected = viewModel.selectedTagID == tag.id
         let isRenaming = renamingTagID == tag.id
         return HStack(spacing: 8) {
-            RoundedRectangle(cornerRadius: 3).fill(Color(hex: tag.colorHex)).frame(width: 9, height: 9)
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color(hex: tag.colorHex))
+                .frame(width: 9, height: 9)
+                .contentShape(Rectangle())
+                .onTapGesture(count: 2) {
+                    selectedTagColor = Color(hex: tag.colorHex)
+                    colorPickerTagID = tag.id
+                }
+                .popover(
+                    isPresented: Binding(
+                        get: { colorPickerTagID == tag.id },
+                        set: { if !$0 { colorPickerTagID = nil } }
+                    ),
+                    arrowEdge: .leading
+                ) {
+                    ColorPicker("Tag color", selection: $selectedTagColor, supportsOpacity: false)
+                        .labelsHidden()
+                        .padding()
+                        .onChange(of: selectedTagColor) { newColor in
+                            viewModel.updateTagColor(id: tag.id, to: newColor.hexString)
+                        }
+                }
             if isRenaming {
                 TextField("Tag name", text: $renameText)
                     .textFieldStyle(.plain)
@@ -155,7 +178,13 @@ struct FilterSidebar: View {
                     .foregroundStyle(isSelected ? .white : .primary)
                     .onSubmit { commitRename(tag) }
             } else {
-                Text(tag.name).font(.system(size: 12.5))
+                Text(tag.name)
+                    .font(.system(size: 12.5))
+                    .contentShape(Rectangle())
+                    .onTapGesture(count: 2) {
+                        renameText = tag.name
+                        renamingTagID = tag.id
+                    }
             }
             Spacer()
         }
@@ -164,10 +193,6 @@ struct FilterSidebar: View {
         .background(isSelected ? Color.accentColor : .clear)
         .foregroundStyle(isSelected ? .white : .primary)
         .contentShape(Rectangle())
-        .onTapGesture(count: 2) {
-            renameText = tag.name
-            renamingTagID = tag.id
-        }
         .onTapGesture(count: 1) { viewModel.selectedTagID = tag.id }
     }
 

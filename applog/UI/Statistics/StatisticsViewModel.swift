@@ -229,6 +229,13 @@ final class StatisticsViewModel: ObservableObject {
         }
     }
 
+    func updateTagColor(id tagID: Int64, to colorHex: String) {
+        Task {
+            try? await store.updateTagColor(id: tagID, to: colorHex)
+            await refresh()
+        }
+    }
+
     func createTag(name: String, colorHex: String) {
         Task {
             _ = try? await store.createTag(name: name, colorHex: colorHex)

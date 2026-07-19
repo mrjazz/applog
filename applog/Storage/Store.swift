@@ -308,6 +308,16 @@ actor Store {
         }
     }
 
+    func updateTagColor(id: Int64, to colorHex: String) throws {
+        let stmt = try prepare("UPDATE tag SET color = ? WHERE id = ?;")
+        defer { sqlite3_finalize(stmt) }
+        sqlite3_bind_text(stmt, 1, colorHex, -1, SQLITE_TRANSIENT)
+        sqlite3_bind_int64(stmt, 2, id)
+        guard sqlite3_step(stmt) == SQLITE_DONE else {
+            throw StoreError.sqlError(String(cString: sqlite3_errmsg(db)))
+        }
+    }
+
     func applyTag(_ tagID: Int64?, toNode nodeID: Int64) throws {
         let stmt = try prepare("UPDATE node SET tag_id = ? WHERE id = ?;")
         defer { sqlite3_finalize(stmt) }

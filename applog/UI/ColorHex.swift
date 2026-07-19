@@ -15,6 +15,19 @@ extension Color {
         self = Color(red: r, green: g, blue: b)
     }
 
+    /// Serializes a user-selected color in the same `#RRGGBB` format used by
+    /// the tag table. The color picker may provide a color in a non-RGB space,
+    /// so normalize it before reading its components.
+    var hexString: String {
+        let nsColor = NSColor(self).usingColorSpace(.deviceRGB) ?? NSColor(self)
+        return String(
+            format: "#%02X%02X%02X",
+            Int((nsColor.redComponent * 255).rounded()),
+            Int((nsColor.greenComponent * 255).rounded()),
+            Int((nsColor.blueComponent * 255).rounded())
+        )
+    }
+
     /// Scales this color's RGB components toward black — used to derive a
     /// readable text color from a tag's swatch, since the swatch itself
     /// (e.g. a light orange) often fails 4:1 contrast against white or a
