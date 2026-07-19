@@ -5,6 +5,7 @@ import os
 
 enum DateQuickSet: String, CaseIterable, Identifiable {
     case today = "Today"
+    case yesterday = "Yesterday"
     case thisWeek = "This Week"
     case lastWeek = "Last Week"
     case thisMonth = "This Month"
@@ -26,6 +27,10 @@ enum DateQuickSet: String, CaseIterable, Identifiable {
         switch self {
         case .today:
             return (cal.startOfDay(for: now), now)
+        case .yesterday:
+            let todayStart = cal.startOfDay(for: now)
+            let start = cal.date(byAdding: .day, value: -1, to: todayStart) ?? todayStart
+            return (start, start)
         case .thisWeek:
             let start = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)) ?? now
             return (start, now)
