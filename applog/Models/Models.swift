@@ -81,4 +81,6 @@ struct TimelineBlock {
     var startFraction: Double  // 0...1 across the 24h day
     var widthFraction: Double
     var colorHex: String
+    var label: String
+    var seconds: Int
 }

@@ -20,6 +20,7 @@ actor TrackingEngine {
     private var idleAccumulatorStart: Date?
     private var openSession: (nodeID: Int64, start: Date)?
     private var loopTask: Task<Void, Never>?
+    private var lastTickAt: Date?
 
     init(store: Store, settings: SettingsStore) {
         self.store = store
@@ -60,9 +61,18 @@ actor TrackingEngine {
     private func tick() async {
         guard !isPaused else { return }
 
+        let now = Date()
+        defer { lastTickAt = now }
+
         let (semiIdleThreshold, fullyIdleThreshold, interval) = await MainActor.run {
             (settings.semiIdleThresholdSeconds, settings.fullyIdleThresholdSeconds, settings.sampleIntervalSeconds)
         }
+        // Credit the actual wall-clock time since the previous tick, not the
+        // configured sample interval: tick() itself does synchronous AppleScript
+        // and Accessibility calls that can take as long as (or longer than) the
+        // interval, and crediting a fixed amount silently drops that overhead.
+        // Clamped so a stalled tick (e.g. system sleep) can't over-credit.
+        let elapsedSeconds = lastTickAt.map { min(now.timeIntervalSince($0), Double(fullyIdleThreshold)) } ?? Double(interval)
         let idleSeconds = IdleClock.secondsSinceLastInput()
 
         let newState: IdleState
@@ -81,8 +91,8 @@ actor TrackingEngine {
             if !wasFullyIdle {
                 // Just went idle: close out whatever was being tracked, start
                 // accumulating idle time silently. No dialog — FR-7.
-                try? await flushOpenSession(endingAt: Date())
-                idleAccumulatorStart = Date()
+                try? await flushOpenSession(endingAt: now)
+                idleAccumulatorStart = now
             }
             return
         }
@@ -90,7 +100,6 @@ actor TrackingEngine {
         if wasFullyIdle, let idleStart = idleAccumulatorStart {
             // Coming back from idle: fold the whole idle span into the Away
             // node in one shot, quietly.
-            let now = Date()
             do {
                 let awayID = try await store.awayNodeID()
                 try await store.recordSession(nodeID: awayID, startedAt: idleStart, endedAt: now)
@@ -127,7 +136,6 @@ actor TrackingEngine {
             }
             guard let leafNodeID = parentID else { return }
 
-            let now = Date()
             if let open = openSession, open.nodeID != leafNodeID {
                 try await store.recordSession(nodeID: open.nodeID, startedAt: open.start, endedAt: now)
                 openSession = (leafNodeID, now)
@@ -136,7 +144,7 @@ actor TrackingEngine {
             }
 
             try await store.addActiveSeconds(
-                interval, isSemiIdle: newState == .semiIdle,
+                Int(elapsedSeconds.rounded()), isSemiIdle: newState == .semiIdle,
                 keyClicks: 0, mouseClicks: 0, toNode: leafNodeID, day: now
             )
         } catch {

@@ -162,13 +162,13 @@ final class StatisticsViewModel: ObservableObject {
     }
 
     private func refreshTimeline(nodes: [Int64: Node], tagsByID: [Int64: Tag], filter: TreeBuilder.Filter) async {
-        func resolvedColor(for nodeID: Int64?) -> String {
+        func resolvedTag(for nodeID: Int64?) -> (name: String, colorHex: String) {
             var current = nodeID.flatMap { nodes[$0] }
             while let n = current {
-                if let tagID = n.tagID, let tag = tagsByID[tagID] { return tag.colorHex }
+                if let tagID = n.tagID, let tag = tagsByID[tagID] { return (tag.name, tag.colorHex) }
                 current = n.parentID.flatMap { nodes[$0] }
             }
-            return TreeBuilder.untaggedColorHex
+            return (TimelinePanel.untaggedLabel, TreeBuilder.untaggedColorHex)
         }
 
         let calendar = Calendar.current
@@ -192,22 +192,29 @@ final class StatisticsViewModel: ObservableObject {
             // — a tag used across a dozen nodes should still be a single
             // bar), sized by that tag's total time as a fraction of the
             // day, e.g. 2.4h of a 24h day renders as a 10%-wide segment.
-            var secondsByColor: [String: Int] = [:]
+            var secondsByTag: [String: (colorHex: String, seconds: Int)] = [:]
             for (nodeID, seconds) in nodeSeconds {
                 guard seconds > 0, !TreeBuilder.isExcluded(nodeID: nodeID, nodes: nodes, filter: filter) else { continue }
-                secondsByColor[resolvedColor(for: nodeID), default: 0] += seconds
+                let tag = resolvedTag(for: nodeID)
+                secondsByTag[tag.name, default: (tag.colorHex, 0)].seconds += seconds
             }
-            guard !secondsByColor.isEmpty else { continue }
+            guard !secondsByTag.isEmpty else { continue }
 
             let daySeconds = dayEnd.timeIntervalSince(dayStart)
             var cursor = 0.0
-            let blocks = secondsByColor.sorted { $0.value > $1.value }.map { colorHex, seconds -> TimelineBlock in
-                let widthFraction = Double(seconds) / daySeconds
-                let block = TimelineBlock(startFraction: cursor, widthFraction: widthFraction, colorHex: colorHex)
+            let blocks = secondsByTag.sorted { $0.value.seconds > $1.value.seconds }.map { name, entry -> TimelineBlock in
+                let widthFraction = Double(entry.seconds) / daySeconds
+                let block = TimelineBlock(
+                    startFraction: cursor,
+                    widthFraction: widthFraction,
+                    colorHex: entry.colorHex,
+                    label: name,
+                    seconds: entry.seconds
+                )
                 cursor += widthFraction
                 return block
             }
-            let totalSeconds = secondsByColor.values.reduce(0, +)
+            let totalSeconds = secondsByTag.values.reduce(0) { $0 + $1.seconds }
             result.append((dayFormatter.string(from: day), totalSeconds, blocks))
         }
         timelineDays = result

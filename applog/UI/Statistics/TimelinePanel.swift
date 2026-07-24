@@ -3,6 +3,8 @@ import SwiftUI
 /// One row per day, each a 24-hour strip colored by resolved tag (FR-19b).
 /// Independent of the tree's filters — always shows full days.
 struct TimelinePanel: View {
+    static let untaggedLabel = "Untagged / Away"
+
     let days: [(label: String, totalSeconds: Int, blocks: [TimelineBlock])]
     let tags: [Tag]
 
@@ -59,7 +61,7 @@ struct TimelinePanel: View {
             ForEach(tags) { tag in
                 legendItem(name: tag.name, colorHex: tag.colorHex)
             }
-            legendItem(name: "Untagged / Away", colorHex: TreeBuilder.untaggedColorHex)
+            legendItem(name: Self.untaggedLabel, colorHex: TreeBuilder.untaggedColorHex)
         }
     }
 
@@ -120,11 +122,18 @@ private struct DayTrack: View {
                         .frame(width: 1)
                         .offset(x: geo.size.width * Double(tick + 1) / 4)
                 }
-                ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
-                    Rectangle()
-                        .fill(Color(hex: block.colorHex))
-                        .frame(width: max(1, geo.size.width * block.widthFraction))
-                        .offset(x: geo.size.width * block.startFraction)
+                // Laid out with a real HStack rather than offset overlays:
+                // `.help` derives its tooltip rect from the layout frame, and
+                // `.offset` only moves pixels, so offset blocks would all
+                // register their tooltip at x = 0 and the first one would win.
+                HStack(spacing: 0) {
+                    ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
+                        Rectangle()
+                            .fill(Color(hex: block.colorHex))
+                            .frame(width: max(1, geo.size.width * block.widthFraction))
+                            .help("\(block.label): \(DurationFormat.short(block.seconds))")
+                    }
+                    Spacer(minLength: 0)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 2))
