@@ -85,6 +85,7 @@ final class StatisticsViewModel: ObservableObject {
     @Published var customTo: Date = Date()
     @Published var timelineDays: [(label: String, totalSeconds: Int, blocks: [TimelineBlock])] = []
     @Published var totalTrackedToday: Int = 0
+    @Published var totalTrackedSelectedRange: Int = 0
     /// Node IDs the user has expanded. Absence means collapsed — nodes
     /// default closed until opened.
     @Published var expandedNodeIDs: Set<Int64> = []
@@ -148,6 +149,10 @@ final class StatisticsViewModel: ObservableObject {
             tags = allTags
             if selectedTagID == nil { selectedTagID = allTags.first?.id }
             rows = builtRows
+
+            totalTrackedSelectedRange = ownSeconds
+                .filter { !TreeBuilder.isExcluded(nodeID: $0.key, nodes: nodes, filter: filter) }
+                .values.reduce(0, +)
 
             let (todayStart, now) = DateQuickSet.today.range!
             let todaySeconds = try await store.ownActiveSeconds(from: todayStart, to: now)

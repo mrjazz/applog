@@ -90,6 +90,15 @@ struct StatisticsView: View {
             }
             .font(.system(size: 12))
 
+            if viewModel.quickSet != .today {
+                HStack(spacing: 4) {
+                    Text("Selected range ·").foregroundColor(.secondary)
+                    Text(DurationFormat.short(viewModel.totalTrackedSelectedRange)).fontWeight(.semibold)
+                    Text("tracked").foregroundColor(.secondary)
+                }
+                .font(.system(size: 12))
+            }
+
             Spacer()
 
             Button {
