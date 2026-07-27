@@ -73,7 +73,7 @@ enum TreeBuilder {
         func build(_ node: Node) -> TreeRow {
             let ownTotal = ownSeconds[node.id] ?? 0
             let childNodes = (childrenByParent[node.id] ?? []).sorted { $0.name < $1.name }
-            let childRows = childNodes.map(build)
+            var childRows = childNodes.map(build)
 
             var breakdown: [Tag?: Int] = [:]
             if ownTotal > 0 {
@@ -86,6 +86,29 @@ enum TreeBuilder {
             }
 
             let total = ownTotal + childRows.reduce(0) { $0 + $1.totalSeconds }
+
+            // Time can land directly on this node (e.g. no window title was
+            // available to resolve a domain/page title) while it also has
+            // children — surface it as a visible row, merged into an
+            // existing "Unknown" row if this node has one, so the displayed
+            // children always sum to `total` instead of silently absorbing it.
+            if ownTotal > 0, !childRows.isEmpty {
+                let tag = resolvedTag(for: node)
+                if let idx = childRows.firstIndex(where: { $0.node.name.caseInsensitiveCompare("Unknown") == .orderedSame }) {
+                    childRows[idx].totalSeconds += ownTotal
+                    childRows[idx].tagBreakdown[tag, default: 0] += ownTotal
+                } else {
+                    let placeholderNode = Node(
+                        id: -node.id, parentID: node.id, kind: childNodes[0].kind,
+                        name: "Unknown", bundleID: nil, tagID: nil, hidden: false, createdAt: node.createdAt
+                    )
+                    childRows.append(TreeRow(
+                        node: placeholderNode, depth: 0, totalSeconds: ownTotal,
+                        tagBreakdown: [tag: ownTotal], children: []
+                    ))
+                }
+            }
+
             return TreeRow(node: node, depth: 0, totalSeconds: total, tagBreakdown: breakdown, children: childRows)
         }
 
@@ -109,10 +132,7 @@ enum TreeBuilder {
         }
 
         func prune(_ row: TreeRow) -> TreeRow? {
-            // Duration displays as whole minutes (DurationFormat.short), so
-            // anything under 60 seconds would render as a confusing "0m" —
-            // hide it regardless of the user's own minDuration setting.
-            guard row.totalSeconds >= 60 else { return nil }
+            guard row.totalSeconds > 0 else { return nil }
             guard row.totalSeconds >= filter.minDurationSeconds else { return nil }
             guard matchesSearch(row) else { return nil }
             guard matchesTagFilter(row) else { return nil }

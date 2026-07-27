@@ -243,6 +243,7 @@ enum DurationFormat {
         let h = seconds / 3600
         let m = (seconds % 3600) / 60
         if h > 0 { return "\(h)h \(m)m" }
-        return "\(m)m"
+        if m > 0 { return "\(m)m" }
+        return "\(seconds)s"
     }
 }
