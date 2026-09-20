@@ -25,6 +25,7 @@ struct SettingsView: View {
                     storageSection
                     privacySection
                     exportSection
+                    aboutSection
                 }
                 .padding(28)
             }
@@ -90,34 +91,40 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: Idle & Away
+    // MARK: Input Activity
 
     private var idleAwaySection: some View {
-        section(title: "Idle & Away", color: .blue) {
+        section(title: "Input Activity", color: .blue) {
             group {
-                row(title: "Semi-idle after", subtitle: "Samples are flagged semi-idle below this") {
-                    Stepper(
-                        "\(settings.semiIdleThresholdSeconds)s",
-                        value: Binding(
-                            get: { settings.semiIdleThresholdSeconds },
-                            set: { settings.setSemiIdleThreshold(max(1, $0)) }
-                        ), in: 1...120
-                    )
+                row(title: "No-input marker", subtitle: "Tracks a separate no-input metric without removing screen time") {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("\(settings.semiIdleThresholdSeconds)s")
+                            .font(.system(size: 12, weight: .medium))
+                            .monospacedDigit()
+                        Slider(
+                            value: Binding(
+                                get: { Double(settings.semiIdleThresholdSeconds) },
+                                set: { settings.setSemiIdleThreshold(Int($0.rounded())) }
+                            ),
+                            in: 10...180,
+                            step: 10
+                        )
+                        .frame(width: 150)
+                        HStack {
+                            Text("10s")
+                            Spacer()
+                            Text("3m")
+                        }
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                    }
                 }
-                row(title: "Fully idle after", subtitle: "Sampling pauses; time accrues to Away") {
-                    Stepper(
-                        "\(settings.fullyIdleThresholdSeconds / 60)m",
-                        value: Binding(
-                            get: { settings.fullyIdleThresholdSeconds / 60 },
-                            set: { settings.setFullyIdleThreshold(max(1, $0) * 60) }
-                        ), in: 1...60
-                    )
-                }
-                Text("When you come back, elapsed idle time is added to the \u{201C}Away\u{201D} node in Statistics automatically — no dialog interrupts you. Tag or rename it from the tree whenever you like.")
+                Text("Time remains attributed to the frontmost app while it can be sampled, even if you are reading, watching video, or in a meeting without keyboard or mouse input.\n\nChanges apply to future tracking only. Historical samples cannot be recalculated precisely because their original input-idle timing is not stored.")
                     .font(.system(size: 11.5))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
+                    .padding(.top, 10)
+                    .padding(.bottom, 10)
             }
         }
     }
@@ -177,19 +184,21 @@ struct SettingsView: View {
                         Task {
                             try? await store.removeExclusion(kind: .app, value: value)
                             await loadExclusions()
+                            await statisticsViewModel.refresh()
                         }
                     }
                     HStack {
-                        TextField("Bundle identifier", text: $newExcludedApp)
+                        TextField("Bundle ID or app name", text: $newExcludedApp)
                             .textFieldStyle(.roundedBorder)
                         Button("Add App…") {
                             guard !newExcludedApp.isEmpty else { return }
                             Task {
-                                try? await store.addExclusion(kind: .app, value: newExcludedApp)
-                                newExcludedApp = ""
-                                await loadExclusions()
-                            }
+                            try? await store.addExclusion(kind: .app, value: newExcludedApp)
+                            newExcludedApp = ""
+                            await loadExclusions()
+                            await statisticsViewModel.refresh()
                         }
+                    }
                     }
                     .padding(.horizontal, 16).padding(.bottom, 12)
                 }
@@ -263,6 +272,20 @@ struct SettingsView: View {
                 }
                 row(title: "Merge Database", subtitle: "Combine an exported database file into this one") {
                     Button("Merge…") { }
+                }
+            }
+        }
+    }
+
+    // MARK: About
+
+    private var aboutSection: some View {
+        section(title: "About", color: .purple) {
+            group {
+                row(title: "Source code", subtitle: "View AppTracker on GitHub") {
+                    Button("Open GitHub…") {
+                        NSWorkspace.shared.open(URL(string: "https://github.com/mrjazz/applog")!)
+                    }
                 }
             }
         }

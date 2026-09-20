@@ -19,14 +19,28 @@ enum TreeBuilder {
     static func isNodeItselfExcluded(_ node: Node, filter: Filter) -> Bool {
         switch node.kind {
         case .app:
-            guard let bundleID = node.bundleID else { return false }
-            return filter.excludedAppBundleIDs.contains(bundleID)
+            return isAppExcluded(
+                bundleID: node.bundleID,
+                name: node.name,
+                excludedApps: filter.excludedAppBundleIDs
+            )
         case .domain:
             return filter.excludedDomains.contains(node.name.lowercased())
         case .away:
             return filter.excludedAppBundleIDs.contains { $0.caseInsensitiveCompare(node.name) == .orderedSame }
         default:
             return false
+        }
+    }
+
+    /// Exclusions historically accepted app display names, while the tracker
+    /// later began comparing only bundle identifiers. Accept both forms so
+    /// existing preferences continue to hide activity and new entries remain
+    /// unambiguous when a bundle ID is used.
+    static func isAppExcluded(bundleID: String?, name: String, excludedApps: Set<String>) -> Bool {
+        excludedApps.contains { excluded in
+            bundleID?.caseInsensitiveCompare(excluded) == .orderedSame
+                || name.caseInsensitiveCompare(excluded) == .orderedSame
         }
     }
 

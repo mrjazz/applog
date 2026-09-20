@@ -83,7 +83,7 @@ final class StatisticsViewModel: ObservableObject {
     /// calendar to a single day the first time Custom Range is picked.
     @Published var customFrom: Date = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
     @Published var customTo: Date = Date()
-    @Published var timelineDays: [(label: String, totalSeconds: Int, blocks: [TimelineBlock])] = []
+    @Published var timelineDays: [(id: String, label: String, totalSeconds: Int, blocks: [TimelineBlock])] = []
     @Published var totalTrackedToday: Int = 0
     @Published var totalTrackedSelectedRange: Int = 0
     /// Node IDs the user has expanded. Absence means collapsed — nodes
@@ -178,11 +178,11 @@ final class StatisticsViewModel: ObservableObject {
 
         let calendar = Calendar.current
         let dayFormatter = DateFormatter()
-        dayFormatter.dateFormat = "MMM d"
+        dayFormatter.dateFormat = "d MMM yy"
 
-        var result: [(String, Int, [TimelineBlock])] = []
-        for offset in 0..<14 {
-            guard let day = calendar.date(byAdding: .day, value: -offset, to: Date()) else { continue }
+        let usageDays = (try? await store.usageDays()) ?? []
+        var result: [(id: String, label: String, totalSeconds: Int, blocks: [TimelineBlock])] = []
+        for day in usageDays {
             let dayStart = calendar.startOfDay(for: day)
             let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
             // Same source as the toolbar total and the tree (usage_bucket,
@@ -220,7 +220,7 @@ final class StatisticsViewModel: ObservableObject {
                 return block
             }
             let totalSeconds = secondsByTag.values.reduce(0) { $0 + $1.seconds }
-            result.append((dayFormatter.string(from: day), totalSeconds, blocks))
+            result.append((Store.dayFormatter.string(from: day), dayFormatter.string(from: day), totalSeconds, blocks))
         }
         timelineDays = result
     }

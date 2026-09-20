@@ -32,7 +32,7 @@ The guiding rule: **any distinct "thing" a process shows the user — a tab, a d
 
 ### 2.3 Idle & away detection
 - FR-5: **Semi-idle**: no keyboard/mouse input for a configurable threshold (default 10s). Sampling continues but the sample is flagged semi-idle.
-- FR-6: **Fully idle**: no input for a configurable threshold (default 3 minutes). Data collection halts; elapsed idle time is not attributed to any tracked app.
+- FR-6: **No-input continuity**: prolonged absence of keyboard or mouse input does not stop tracking. Time remains attributed to the frontmost app while the user session is active, so reading, video playback, and meetings count as screen time.
 - FR-7: **Away (silent)**: once input resumes after a fully-idle span, the elapsed idle duration is automatically attributed to a dedicated **"Away" node** at the root of the statistics tree — no dialog, prompt, or interruption is shown. The app stays quiet. The Away node behaves like any other node: it can be renamed, tagged, hidden, or merged, so the user can categorize elapsed away-time later, on their own schedule, directly from the Statistics view.
 - FR-8: Idle detection uses system-wide last-input timestamp (`CGEventSource.secondsSinceLastEventType`), not app-specific hooks.
 

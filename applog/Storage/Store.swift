@@ -263,6 +263,22 @@ actor Store {
         return result
     }
 
+    /// Calendar days that have at least one recorded usage bucket, newest
+    /// first. The timeline uses this instead of an arbitrary rolling window
+    /// so older activity remains available in the sidebar.
+    func usageDays() throws -> [Date] {
+        let stmt = try prepare("SELECT DISTINCT day FROM usage_bucket ORDER BY day DESC;")
+        defer { sqlite3_finalize(stmt) }
+        var days: [Date] = []
+        while sqlite3_step(stmt) == SQLITE_ROW {
+            let day = String(cString: sqlite3_column_text(stmt, 0))
+            if let date = Self.dayFormatter.date(from: day) {
+                days.append(date)
+            }
+        }
+        return days
+    }
+
     static let dayFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"

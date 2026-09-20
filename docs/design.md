@@ -78,15 +78,13 @@ struct SampleResult {
 `TrackingEngine` is a Swift `actor` owning a `DispatchSourceTimer` at the configured sample interval. Each tick:
 
 1. Read last-input timestamp: `CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .init(rawValue: ~0)!)`.
-2. Compute idle state: `active` / `semiIdle` / `fullyIdle` against configured thresholds.
-3. If `fullyIdle`, skip sampling entirely (no app attribution) but keep an in-memory counter of elapsed idle seconds.
-4. When input resumes (`fullyIdle` → `active`), flush the accumulated idle duration silently into the synthetic root-level **"Away"** node's `usage_bucket` for the current day — no dialog, no main-actor UI interruption, no pause. The engine simply resumes sampling immediately (FR-7).
-5. Otherwise run the sampler chain, build a `SampleResult`, and hand it to `Store.recordSample(_:isSemiIdle:)`.
+2. Mark a sample `semiIdle` when the configured no-input threshold is crossed, without stopping collection.
+3. Run the sampler chain and attribute elapsed time to the frontmost app regardless of its input marker. This keeps reading, video playback, and meetings in the same definition of screen time as macOS.
 
 ### 3.3 Idle thresholds
 
 Config values live in `Settings` (see §6), all in seconds:
-`sampleInterval = 5`, `semiIdleThreshold = 10`, `fullyIdleThreshold = 180` — matching FR-5/FR-6. There is no separate "away" threshold or dialog: any fully-idle span, once it ends, becomes Away time (FR-7).
+`sampleInterval = 5`, `semiIdleThreshold = 10`. Semi-idle is an informational no-input metric; it does not remove time from app totals.
 
 ## 4. Data Model
 
@@ -154,7 +152,7 @@ exclusion(kind TEXT, value TEXT, PRIMARY KEY(kind, value))  -- kind = 'app' | 'd
 - Browser nodes render at three fixed levels (browser → domain → page title, FR-4); non-browser apps render at whatever depth their delimiter-parsed titles produce (FR-3). Any level, at any depth, can be the target of Apply Tag.
 - Selection-driven actions (Apply Tag, Hide/Unhide, Merge, Manual Edit) are bound to the keyboard shortcuts in FR §10, implemented via SwiftUI `.keyboardShortcut(_:modifiers:)`.
 - Filtering is pure (no DB writes); it operates on a snapshot fetched via a GRDB `ValueObservation` so the tree updates live as new samples land while the window is open.
-- **Daily timeline panel** (FR-19b): one row per calendar day, each a `Canvas`-drawn 24-hour strip. For a given day, the strip is built from that day's `session` rows (§4.1) across *all* nodes — each session's `started_at`/`ended_at` places a colored block directly on the hour axis, resolved to its node's tag. Gaps (no session covering that time) render in the neutral untagged color, representing fully-idle/away spans. This panel scrolls independently of the tree and is unaffected by the tree's filters — it always shows full days.
+- **Daily timeline panel** (FR-19b): one row per calendar day, each a `Canvas`-drawn 24-hour strip. For a given day, the strip is built from that day's `session` rows (§4.1) across *all* nodes — each session's `started_at`/`ended_at` places a colored block directly on the hour axis, resolved to its node's tag. Gaps (no session covering that time) render in the neutral untagged color. This panel scrolls independently of the tree and is unaffected by the tree's filters — it always shows full days.
 - The toolbar carries a single **Settings** button (gear glyph) that opens the Settings window (FR-19a). There is no Export control here — Statistics stays scoped to browsing and tagging; export moved to Settings (§8).
 
 ## 6. Settings

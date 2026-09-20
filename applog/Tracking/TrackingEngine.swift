@@ -5,7 +5,6 @@ import os
 nonisolated enum IdleState: Equatable {
     case active
     case semiIdle
-    case fullyIdle
 }
 
 /// Owns the sampling loop (design.md §3.2). Runs as an actor so its mutable
@@ -17,7 +16,6 @@ actor TrackingEngine {
 
     private var isPaused = false
     private var idleState: IdleState = .active
-    private var idleAccumulatorStart: Date?
     private var openSession: (nodeID: Int64, start: Date)?
     private var loopTask: Task<Void, Never>?
     private var lastTickAt: Date?
@@ -64,66 +62,35 @@ actor TrackingEngine {
         let now = Date()
         defer { lastTickAt = now }
 
-        let (semiIdleThreshold, fullyIdleThreshold, interval) = await MainActor.run {
-            (settings.semiIdleThresholdSeconds, settings.fullyIdleThresholdSeconds, settings.sampleIntervalSeconds)
+        let (semiIdleThreshold, interval) = await MainActor.run {
+            (settings.semiIdleThresholdSeconds, settings.sampleIntervalSeconds)
         }
         // Credit the actual wall-clock time since the previous tick, not the
         // configured sample interval: tick() itself does synchronous AppleScript
         // and Accessibility calls that can take as long as (or longer than) the
         // interval, and crediting a fixed amount silently drops that overhead.
         // Clamped so a stalled tick (e.g. system sleep) can't over-credit.
-        let elapsedSeconds = lastTickAt.map { min(now.timeIntervalSince($0), Double(fullyIdleThreshold)) } ?? Double(interval)
+        // Missing input is deliberately not used as a cutoff: reading,
+        // watching video, and meetings are still screen time.
+        let maximumSampleGap = max(Double(interval) * 2, 30)
+        let elapsedSeconds = lastTickAt.map { min(now.timeIntervalSince($0), maximumSampleGap) } ?? Double(interval)
         let idleSeconds = IdleClock.secondsSinceLastInput()
 
-        let newState: IdleState
-        if idleSeconds >= Double(fullyIdleThreshold) {
-            newState = .fullyIdle
-        } else if idleSeconds >= Double(semiIdleThreshold) {
-            newState = .semiIdle
-        } else {
-            newState = .active
-        }
-
-        let wasFullyIdle = idleState == .fullyIdle
+        let newState: IdleState = idleSeconds >= Double(semiIdleThreshold) ? .semiIdle : .active
         idleState = newState
-
-        if newState == .fullyIdle {
-            if !wasFullyIdle {
-                // Just went idle: close out whatever was being tracked, start
-                // accumulating idle time silently. No dialog — FR-7.
-                try? await flushOpenSession(endingAt: now)
-                idleAccumulatorStart = now
-            }
-            return
-        }
-
-        if wasFullyIdle, let idleStart = idleAccumulatorStart {
-            // Coming back from idle: fold the whole idle span into the Away
-            // node in one shot, quietly.
-            do {
-                let awayID = try await store.awayNodeID()
-                try await store.recordSession(nodeID: awayID, startedAt: idleStart, endedAt: now)
-                try await store.addActiveSeconds(
-                    Int(now.timeIntervalSince(idleStart)), isSemiIdle: false,
-                    keyClicks: 0, mouseClicks: 0, toNode: awayID, day: now
-                )
-            } catch {
-                AppLogger.tracking.error("failed to flush away time: \(error)")
-            }
-            idleAccumulatorStart = nil
-        }
 
         guard let app = await MainActor.run(body: { NSWorkspace.shared.frontmostApplication }),
               let bundleID = app.bundleIdentifier else { return }
 
         let excludedApps = (try? await store.exclusions(kind: .app)) ?? []
-        guard !excludedApps.contains(bundleID) else { return }
+        let excludedAppSet = Set(excludedApps)
+        let appName = app.localizedName ?? bundleID
+        guard !TreeBuilder.isAppExcluded(bundleID: bundleID, name: appName, excludedApps: excludedAppSet) else { return }
 
         let title = await MainActor.run { WindowTitleSampler.frontmostWindowTitle(for: app) }
         let tabURL = HierarchyBuilder.browserBundleIDs.contains(bundleID)
             ? await MainActor.run { BrowserTabInspector.activeTabURL(bundleID: bundleID) }
             : nil
-        let appName = app.localizedName ?? bundleID
         let chain = HierarchyBuilder.chain(bundleID: bundleID, appName: appName, windowTitle: title, tabURL: tabURL)
 
         do {

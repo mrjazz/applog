@@ -37,7 +37,6 @@ final class SettingsStore: ObservableObject {
     @Published var showInDock: Bool
     @Published var sampleIntervalSeconds: Int
     @Published var semiIdleThresholdSeconds: Int
-    @Published var fullyIdleThresholdSeconds: Int
     @Published var autosaveIntervalMinutes: Int
     @Published var backupRetentionCount: Int
     @Published var cullThresholdSeconds: Int
@@ -49,8 +48,8 @@ final class SettingsStore: ObservableObject {
         launchAtLogin = (try? await store.setting("launchAtLogin")) == "true"
         showInDock = ((try? await store.setting("showInDock")) ?? "true") == "true"
         sampleIntervalSeconds = Int((try? await store.setting("sampleIntervalSeconds")) ?? "") ?? 5
-        semiIdleThresholdSeconds = Int((try? await store.setting("semiIdleThresholdSeconds")) ?? "") ?? 10
-        fullyIdleThresholdSeconds = Int((try? await store.setting("fullyIdleThresholdSeconds")) ?? "") ?? 180
+        let savedSemiIdleThreshold = Int((try? await store.setting("semiIdleThresholdSeconds")) ?? "") ?? 10
+        semiIdleThresholdSeconds = min(180, max(10, savedSemiIdleThreshold))
         autosaveIntervalMinutes = Int((try? await store.setting("autosaveIntervalMinutes")) ?? "") ?? 10
         backupRetentionCount = Int((try? await store.setting("backupRetentionCount")) ?? "") ?? 10
         cullThresholdSeconds = Int((try? await store.setting("cullThresholdSeconds")) ?? "") ?? 60
@@ -81,11 +80,6 @@ final class SettingsStore: ObservableObject {
     func setSemiIdleThreshold(_ seconds: Int) {
         semiIdleThresholdSeconds = seconds
         persist("semiIdleThresholdSeconds", String(seconds))
-    }
-
-    func setFullyIdleThreshold(_ seconds: Int) {
-        fullyIdleThresholdSeconds = seconds
-        persist("fullyIdleThresholdSeconds", String(seconds))
     }
 
     func setAutosaveInterval(_ minutes: Int) {

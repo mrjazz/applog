@@ -5,7 +5,7 @@ import SwiftUI
 struct TimelinePanel: View {
     static let untaggedLabel = "Untagged / Away"
 
-    let days: [(label: String, totalSeconds: Int, blocks: [TimelineBlock])]
+    let days: [(id: String, label: String, totalSeconds: Int, blocks: [TimelineBlock])]
     let tags: [Tag]
 
     /// ScrollView is greedy along its scroll axis regardless of any frame
@@ -14,6 +14,7 @@ struct TimelinePanel: View {
     /// measure that space and force the content to fill at least it, so
     /// there's nothing left to center — see the GeometryReader below.
     @State private var scrollAreaHeight: CGFloat = 0
+    @State private var selectedDayID: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -26,13 +27,18 @@ struct TimelinePanel: View {
 
             ScrollView {
                 VStack(spacing: 5) {
-                    ForEach(days, id: \.label) { day in
-                        HStack(spacing: 8) {
+                    ForEach(days, id: \.id) { day in
+                        Button {
+                            selectedDayID = day.id
+                        } label: {
+                            HStack(spacing: 8) {
                             Text(day.label)
                                 .font(.system(size: 10))
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(selectedDayID == day.id ? .primary : .tertiary)
                                 .monospacedDigit()
-                                .frame(width: 34, alignment: .trailing)
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .frame(width: 52, alignment: .trailing)
                             DayTrack(blocks: day.blocks)
                                 .frame(height: 11)
                             Text(DurationFormat.short(day.totalSeconds))
@@ -40,7 +46,17 @@ struct TimelinePanel: View {
                                 .foregroundStyle(.tertiary)
                                 .monospacedDigit()
                                 .frame(width: 38, alignment: .trailing)
+                            }
+                            .padding(.vertical, 3)
+                            .padding(.horizontal, 4)
+                            .background(
+                                selectedDayID == day.id ? Color.accentColor.opacity(0.14) : .clear,
+                                in: RoundedRectangle(cornerRadius: 4)
+                            )
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("\(day.label), \(DurationFormat.short(day.totalSeconds)) tracked")
+                        .accessibilityAddTraits(selectedDayID == day.id ? .isSelected : [])
                     }
                 }
                 .frame(minHeight: scrollAreaHeight, alignment: .top)
@@ -52,8 +68,73 @@ struct TimelinePanel: View {
                         .onChange(of: geo.size.height) { scrollAreaHeight = geo.size.height }
                 }
             )
+
+            if let selectedDay {
+                dayDetail(selectedDay)
+            }
         }
         .padding(14)
+        .onAppear(perform: selectFirstDayIfNeeded)
+        .onChange(of: days.map(\.id)) { _ in
+            selectFirstDayIfNeeded()
+        }
+    }
+
+    private var selectedDay: (id: String, label: String, totalSeconds: Int, blocks: [TimelineBlock])? {
+        days.first { $0.id == selectedDayID }
+    }
+
+    private func selectFirstDayIfNeeded() {
+        guard !days.isEmpty else {
+            selectedDayID = nil
+            return
+        }
+        guard selectedDay == nil else { return }
+        selectedDayID = days[0].id
+    }
+
+    private func dayDetail(_ day: (id: String, label: String, totalSeconds: Int, blocks: [TimelineBlock])) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Divider()
+            HStack {
+                Text(day.label.uppercased())
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(DurationFormat.short(day.totalSeconds))
+                    .font(.system(size: 11, weight: .semibold))
+                    .monospacedDigit()
+            }
+            Text("TIME BY CATEGORY")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.tertiary)
+                .tracking(0.4)
+
+            ForEach(Array(day.blocks.enumerated()), id: \.offset) { _, block in
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(Color(hex: block.colorHex))
+                        .frame(width: 7, height: 7)
+                    Text(block.label)
+                        .font(.system(size: 10))
+                        .lineLimit(1)
+                    Spacer(minLength: 4)
+                    Text(DurationFormat.short(block.seconds))
+                        .font(.system(size: 10, weight: .medium))
+                        .monospacedDigit()
+                    Text(percentText(for: block, total: day.totalSeconds))
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
+                        .monospacedDigit()
+                        .frame(width: 29, alignment: .trailing)
+                }
+            }
+        }
+    }
+
+    private func percentText(for block: TimelineBlock, total: Int) -> String {
+        guard total > 0 else { return "0%" }
+        return "\(Int((Double(block.seconds) / Double(total) * 100).rounded()))%"
     }
 
     private var legend: some View {
