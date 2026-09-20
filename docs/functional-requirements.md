@@ -1,56 +1,56 @@
-# Applog — Functional Requirements Specification
+# AppTracker — Current Functional Requirements
 
-Source concept: [ProcrastiTracker](http://strlen.com/procrastitracker) (Windows). This document adapts that concept into a native macOS application, replacing Windows-specific mechanisms (system tray, Win32 hooks, custom binary database) with macOS equivalents (menu bar, Accessibility API, SQLite).
+This document describes the behavior currently supported by the app. It is a product contract for the shipped implementation, not a roadmap.
 
-## 1. Purpose
+## 1. Tracking
 
-Applog automatically monitors which applications, documents, and websites the user is actively using, and for how long, without requiring manual timers. It lets the user analyze their own usage patterns after the fact, tag time for billing/project purposes, and export reports — all from a lightweight menu bar app.
+- The app samples the frontmost macOS application at a user-configurable interval (five seconds by default).
+- A sample uses the app bundle identifier, display name, current window title when Accessibility access permits it, and the current time.
+- Time is attributed to the frontmost app continuously while it can be sampled. Reading, watching video, and meetings without keyboard or mouse input count as screen time.
+- The Input Activity setting records a separate semi-idle metric after no input for 10 seconds to 3 minutes, in 10-second increments. It does not remove time from screen-time totals.
+- Historical totals are not recalculated when the no-input setting changes because the original per-sample idle timing is not retained.
+- The app uses `CGEventSource.secondsSinceLastEventType` only to determine no-input duration. It does not capture keystroke content, mouse content, or request Input Monitoring permission.
+- Time across a system sleep or an unusually delayed sampling tick is capped to prevent a single gap being over-credited.
 
-## 2. Core Tracking Behavior
+## 2. Activity hierarchy
 
-### 2.1 Sampling
-- FR-1: The app samples the frontmost application and its active window title on a timer, default interval **5 seconds**, user-configurable.
-- FR-2: Each sample records: app bundle identifier, app display name, window title (if obtainable), timestamp, and whether the sample was "active" or "idle".
+- General application titles are split on ` - `, ` | `, ` : `, ` > `, and `\\`; the application is the root and title parts become child nodes.
+- Safari, Chrome, Firefox, Arc, and Microsoft Edge use a browser → domain → page-title hierarchy. Safari, Chrome, Arc, and Edge read the active-tab URL through their scripting support; Firefox falls back to a title-based domain guess.
+- The app stores domains and page titles, not full URL paths.
+- VS Code and supported JetBrains IDEs retain a project → tab hierarchy based on their title ordering.
 
-### 2.2 Per-document / per-tab tracking
+## 3. Privacy
 
-The guiding rule: **any distinct "thing" a process shows the user — a tab, a document, a conversation, a window — is tracked and displayed as its own node**, not folded into a single entry for the whole app. This applies uniformly; there is no fixed allow-list of "trackable" apps.
+- All activity is stored locally in SQLite at `~/Library/Application Support/AppTracker/database.sqlite`.
+- Adding an excluded app by bundle identifier or display name prevents future samples for that app from being stored. Existing data is hidden from Statistics while the exclusion is present.
+- Adding an excluded domain prevents future samples for that domain and its subdomains from being stored. Existing matching data is hidden from Statistics while the exclusion is present.
+- Exclusion changes update the Statistics tree, totals, and timeline immediately.
+- The application has no network client or cloud synchronization.
 
-- FR-3: For general apps, window titles are parsed into a hierarchy by splitting on common delimiters: ` - `, ` | `, ` : `, ` > `, `\`. The app name is the root node; parsed title segments become child nodes (arbitrary depth). Because the sampler records whatever title is frontmost at each tick, every tab/document a user visits — across any number of tabs or windows in that app — accumulates its own node over time, keyed by its distinct title text. Examples this covers without any app-specific code:
-  - **Terminal / iTerm**: each shell tab (e.g. distinguished by working directory or running process in the title) is its own child node.
-  - **Mail**: each open message or selected mailbox is its own child node.
-  - **Notes**: each note is its own child node.
-  - **Xcode**: each open file is its own child node.
-  - **Slack**: each channel/DM is its own child node.
-- FR-4: For known web browsers (Safari, Chrome, Firefox, Arc, Edge), the app builds a **fixed three-level hierarchy** instead of generic delimiter parsing, since a domain-level grouping is more useful than raw title parsing would produce:
-  1. **Browser** (root) — e.g. Safari
-  2. **Domain** — e.g. `github.com`
-  3. **Page title** — the exact title of the active tab, e.g. "mrjazz/Applog — Pull Request #42"
+## 4. Tags and Statistics
 
-  Domain and page title are read via the Accessibility API and, where available, Safari/Chrome scripting bridges, rather than parsed from the title string. Each of the three levels can independently be tagged.
-- FR-4a: Because sampling only observes the frontmost window/tab at each tick, an app with several tabs/documents open simultaneously builds up its full set of child nodes gradually, as the user switches between them — no enumeration of background/inactive tabs is required or attempted.
+- Users can create tags with a name and color, rename a tag, and change its color by double-clicking its swatch.
+- A selected tag can be applied to any selected tree node. Tags inherit through descendants unless a descendant has its own tag.
+- The Statistics tree is ranked by tracked duration and supports expand/collapse, minimum-duration, name, date-range, and selected-tag filters. Filters combine.
+- Each row shows its name, total duration, inherited tag state, and a duration-scaled tag-colored bar. Mixed descendants produce segmented bars.
+- The toolbar shows today’s tracked time and, for a non-today range, the selected-range total.
+- The Daily Timeline lists every day with recorded usage. Its 24-hour strips place completed and currently open sessions at their recorded times, use tag colors, and show quarter-day gridlines. Older data without session timing is shown as an aggregate fallback. Selecting a day reveals its per-category breakdown.
 
-### 2.3 Idle & away detection
-- FR-5: **Semi-idle**: no keyboard/mouse input for a configurable threshold (default 10s). Sampling continues but the sample is flagged semi-idle.
-- FR-6: **No-input continuity**: prolonged absence of keyboard or mouse input does not stop tracking. Time remains attributed to the frontmost app while the user session is active, so reading, video playback, and meetings count as screen time.
-- FR-7: **Away (silent)**: once input resumes after a fully-idle span, the elapsed idle duration is automatically attributed to a dedicated **"Away" node** at the root of the statistics tree — no dialog, prompt, or interruption is shown. The app stays quiet. The Away node behaves like any other node: it can be renamed, tagged, hidden, or merged, so the user can categorize elapsed away-time later, on their own schedule, directly from the Statistics view.
-- FR-8: Idle detection uses system-wide last-input timestamp (`CGEventSource.secondsSinceLastEventType`), not app-specific hooks.
+## 5. Application windows and menu bar
 
-### 2.4 Input activity counts
-- FR-9: The app counts keyboard presses and mouse clicks (not content) per sampling interval, attributed to the active app/window node, for engagement-intensity display. Exact keystrokes/text are never captured.
+- Statistics is the main window. Settings opens in a separate window from the toolbar gear or the menu bar’s quick-action menu.
+- A primary click on the menu bar icon opens or brings forward Statistics. A secondary click provides pause/resume, Statistics, Settings, and Quit actions.
+- Tracking can be paused and resumed from Statistics or the menu-bar menu.
+- Settings is one scrollable page with General, Input Activity, Storage, Privacy, Export, and About sections.
+- Available General settings are launch at login, Dock visibility, sample interval, and a persisted menu-bar icon style selection.
 
-## 3. Tagging
+## 6. Export
 
-- FR-10: Users can create custom tags (name + color) to represent projects/categories.
-- FR-11: Tags can be applied to any tree node — app, document, or, for browsers, any of the three levels (browser, domain, or page title).
-- FR-12: A tag applied to a parent node propagates to all descendant nodes unless a descendant has its own explicit tag override.
-- FR-13: Untagged nodes display as "Untagged" and inherit the nearest tagged ancestor for reporting/filtering purposes.
-- FR-14: The statistics view color-codes usage bars by tag; nodes with mixed child tags show a subdivided/stacked bar.
-- FR-14a: Tag selection is single-select (one active tag at a time), not checkboxes — the selected tag is the target for "Apply Tag to Node" and, when "Filter on selected tag" is checked, restricts the visible tree to nodes resolving to that tag.
-- FR-14b: A "Rename Tag" action renames the currently selected tag in place; the new label is reflected everywhere the tag is used.
+- Settings can export the currently filtered Statistics tree as a self-contained HTML report, CSV, or JSON.
 
-## 4. Statistics View
+## 7. Statistics shortcuts
 
+<<<<<<< Updated upstream
 - FR-15: A hierarchical tree view lists tracked apps/documents/sites/pages ranked by total active time (descending), each expandable to reveal children ordered the same way.
 - FR-16: Each row shows: name, total duration, and a **horizontal bar to the right of the duration**. The bar's length is scaled relative to the largest visible node's duration (so length communicates relative magnitude, not just proportion-of-parent). If the node's accumulated time spans more than one tag (via its descendants), the bar is subdivided into colored segments — one per tag — sized in proportion to that tag's share of the node's total time. A single-tag (or untagged) node renders as one solid-colored segment.
 - FR-17: Filter controls, in the left sidebar:
@@ -111,20 +111,9 @@ Export lives in the **Export** section of Settings (FR-33), not in the Statistic
 - FR-36: Users can add apps/domains to an exclusion list; excluded items are never sampled or stored.
 - FR-37: No tracked data is transmitted off-device; there is no network component.
 
-## 10. Keyboard Shortcuts (Statistics window)
-
-| Shortcut | Action |
-|---|---|
-| `T` | Apply currently selected tag to selected node |
-| `⌘⇧H` | Hide selected node |
-| `⌘⇧U` | Unhide nodes below selected node |
-| `⌘⇧M` | Merge selected node into a chosen target node |
-| `⌘⇧P` | Merge sibling nodes matching selected node's name as substring |
-| `⌘E` | Enter manual time-correction mode for selected node |
-
 (Remapped from the original Windows CTRL-based shortcuts to avoid conflicts with macOS system shortcuts.)
 
-## 11. Non-Functional Requirements
+## 10. Non-Functional Requirements
 
 - NFR-1: CPU usage while idle-sampling must be negligible (<1% average).
 - NFR-2: Memory footprint target: comparable to source app's spirit — years of history stored in low tens of MB at most, using SQLite with periodic vacuum.
@@ -132,9 +121,3 @@ Export lives in the **Export** section of Settings (FR-33), not in the Statistic
 - NFR-4: Must run on the current and previous two macOS major versions (adjust per actual support policy at implementation time).
 - NFR-5: Fully offline; sandboxed where feasible (Accessibility API access requires the app run outside the App Sandbox, or use of a helper — see design doc for tradeoffs).
 
-## 12. Out of Scope (v1)
-
-- Cloud sync / multi-device live sync (manual database export/merge covers cross-device use).
-- Team/shared reporting or billing integrations.
-- Mobile companion app.
-- Automatic detection of meeting attendance beyond app/window sampling.
